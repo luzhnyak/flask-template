@@ -1,0 +1,47 @@
+{% extends "base.html" %}	
+
+{% block title %}
+	{% if TITLE %}<title>{{ TITLE }}</title>{% else %}<title>{{ ARTICLE.title }} - Flask - start</title>{% endif %}
+{% endblock %}
+
+{% block metatags %}  	
+	<meta name="description" content="{{ ARTICLE.desc[0:200]|safe }}" />
+	<meta name="keywords" content="python, it, windows, linux, hardware, software, flask" />
+	<link rel="canonical" href="https://itshnyk.pp.ua/{{ ARTICLE.category.alias }}/{{ ARTICLE.alias }}" />
+	
+	<meta property="og:title" content="{{ ARTICLE.title }}">
+	<meta property="og:description" content="{{ ARTICLE.desc[0:200]|safe }}">
+	<meta property="og:url" content="https://itshnyk.pp.ua/{{ ARTICLE.category.alias }}/{{ ARTICLE.alias }}">
+	<meta property="og:type" content="website"/>
+	{% if ARTICLE.main_image %}
+	<meta property="og:image" content="https://itshnyk.pp.ua{{ ARTICLE.main_image }}">
+	{% else %}
+	<meta property="og:image" content="https://itshnyk.pp.ua/img/image.png">	
+	{% endif %}	
+	<meta property="fb:app_id" content="646212476077180"/>
+	<meta property="fb:admins" content="100001573483654"/>	
+    
+{% endblock %}
+
+{% block body %}
+<div class="container">		
+	<div class="article">
+		<h1>{{ ARTICLE.title }}</h1>
+		<nav aria-label="breadcrumb">
+			<ol class="breadcrumb">
+			  	<li class="breadcrumb-item"><a href="/">Головна</a> <span class="divider"></span></li> 	
+			  	
+	    		<li class="breadcrumb-item"><a href="/{{ ARTICLE.category.alias }}/">{{ ARTICLE.category.name }}</a> <span class="divider"></span></li>
+	    		
+			  	<li class="breadcrumb-item active" aria-current="page">{{ ARTICLE.title }}</li>
+			</ol>
+		</nav>
+		<article class="article-content">				
+			{{ ARTICLE.textbody.replace("<pre>","<pre class='prettyprint linenums lang-py'>")|safe }}					
+		</article>
+	</div>	
+	
+</div>
+
+{% endblock %}
+

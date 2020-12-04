@@ -1,13 +1,25 @@
 <nav class="mynavbar navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">        
-    <a class="navbar-brand text-white-50" href="/"><i class="fas fas fa-home fa-lg"></i></i> Flask Start</a>
+  <div class="container">       
+    <a class="navbar-brand text-white-50" href="/" title="Flask start"><i class="fas fa-atom fa-lg"></i> Flask start</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span>
       </button>
         
     <div id="navbarNav" class="collapse navbar-collapse">
-      <ul class="nav navbar-nav mr-auto">      
-        <li class="nav-item"><a class="nav-link" href="/" title="Home"><i class="fas fa-check"></i> Home</a></li>        
-      </ul>   
+      <ul class="nav navbar-nav mr-auto">
+      {% for CATEGORY in CATEGORYES %}               
+        <li class="nav-item"><a class="nav-link" href="/{{CATEGORY.alias}}" title="{{CATEGORY.textbody}}">
+          <i class="{{ CATEGORY.icon }} fa-lg"></i> {{CATEGORY.name}}</a>
+        </li>        
+      {% endfor %}                         
+      </ul>          
+    
     </div>
+    <form class="form-inline mb-2 form-control-sm ml-auto" method="GET" action="/search">
+    <span>
+        <input class="form-control-sm" name="q" type="search" placeholder="Пошук" aria-label="Search">
+        <button class="btn btn-outline-secondary form-control-sm" type="submit"><i class="fas fa-search fa-lg"></i></button>
+    </span>
+    </form>          
   </div>
 </nav>
+

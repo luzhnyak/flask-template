@@ -1,0 +1,20 @@
+<nav class="">
+	<ul class="pagination">
+		<li class="page-item" {% if not PAGES.has_prev %} class="disabled" {% endif %}>
+			<a class="page-link" href="./?page={{ PAGES.prev_num }}" aria-label="Previous"><span aria-hidden="true">&laquo</span></a>
+		</li>
+		{% for PAGE in PAGES.iter_pages() %}
+			<li class="page-item" {% if PAGE == PAGES.page %} class="active" {% endif %}>
+				{% if PAGE %}			
+					<a class="page-link" href="./?page={{ PAGE }}">{{ PAGE }}<span class="sr-only">(current)</span></a>
+				{% else %}
+					<span class="page-link" aria-hidden="true">...</span></a>
+				{% endif %}		
+
+			</li>
+		{% endfor %}
+		<li class="page-item" {% if not PAGES.has_next %} class="disabled" {% endif %}>
+			<a class="page-link" href="./?page={{ PAGES.next_num }}" aria-label="Next"><span aria-hidden="true">&raquo</span></a>
+		</li>
+	</ul>
+</nav>

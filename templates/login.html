@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="article login-forms">
+  <h1>Авторизація</h1>
+  <form action="" method="POST">
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" name="username" class="form-control" value={{request.form.username}}>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" name="password" class="form-control" value={{request.form.password}}>
+    </div>
+    <a href="/reset_password_request">Забули пароль</a>
+    <div class="g-recaptcha" data-sitekey="{{ CONFIG.GOOGLE_RECAPTCHA_SITE_KEY }}"></div>
+    <div class="login-buttons">
+      <div class="login-button">
+        <button type="submit" class="btn btn-primary">Увійти</button>  
+      </div>     
+    </div>
+    
+    
+  </form>
+</div>  
+  
+<script src='https://www.google.com/recaptcha/api.js'></script>   
+{% endblock %}

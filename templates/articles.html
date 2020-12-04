@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}
+	{% if TITLE %}<title>{{ TITLE }}</title>{% else %}<title>{{ CATEGORY.name }} - Flask - start</title>{% endif %}
+{% endblock %}
+
+{% block metatags %}
+
+
+{% endblock %}
+
+
+{% block body %}
+
+<div class="container">
+	<div class="articles">
+		<h1>{{ CATEGORY.name }}</h1>
+		<nav aria-label="breadcrumb">
+			<ol class="breadcrumb">
+			  	<li class="breadcrumb-item"><a href="/">Головна</a> <span class="divider"></span></li>
+	    		<li class="breadcrumb-item"><a href="/{{ CATEGORY.alias }}/">{{ CATEGORY.name }}</a> <span class="divider"></span></li>
+			</ol>
+		</nav>
+		<ul>
+		{% for ARTICLE in ARTICLES %}
+			<li>
+				<a href="/{{ ARTICLE.category.alias }}/{{ ARTICLE.alias }}" >
+						<span><p class="">{{ ARTICLE.title }}</p></span>
+				</a>
+			</li>
+		{% endfor %}
+		</ul>
+
+	</div>
+	{% if PAGES %}
+	{% include 'includes/_pagination.html' %}
+	{% endif %}
+</div>
+
+{% endblock %}

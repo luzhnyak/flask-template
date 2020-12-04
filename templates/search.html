@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+
+{% block title %}  
+    <title>Пошук по сайту</title>
+{% endblock %}
+
+{% block metatags %}  	
+    <meta name="description" content="Пошук по сайту" />
+    <meta property="og:title" content="Пошук по сайту">    
+    <meta property="og:site_name" content="GoldFishNet">
+    <meta property="og:type" content="website"/>
+    <meta property="fb:app_id" content="209776286206677"/>
+    <meta property="fb:admins" content="100001573483654"/>
+    <meta property="og:description" content="Пошук по сайту">   
+
+{% endblock %}
+
+{% block body %}
+
+<div class="work-info container">		
+	<div class="article">
+		<h1>Пошук по сайту</h1>
+		<div class="article-content">
+            <script async src="https://cse.google.com/cse.js?cx=1252b10a13e3cb2be"></script>
+            <div class="gcse-search"></div>
+            <!-- <script async src='https://cse.google.com/cse.js?cx=partner-pub-7051595554377741:5401594558'></script> -->
+            <!-- <div class="gcse-searchbox-only"></div> -->
+            <!-- <div class="gcse-searchresults-only"></div> -->
+		</div>
+
+	</div>		
+</div>
+{% endblock %}
