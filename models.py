@@ -130,6 +130,13 @@ class Users(db.Model):
     username = db.Column(db.String(), unique=True)
     password = db.Column(db.String())
     email = db.Column(db.String(), unique=True)
+    fb_id = db.Column(db.Integer())
+    google_id = db.Column(db.Integer())
+
+    def __init__(self, name, username, email):
+        self.name = name
+        self.username = username
+        self.email = email    
 
     def is_authenticated(self):
         return True

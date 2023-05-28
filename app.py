@@ -2,9 +2,6 @@
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_admin.menu import MenuLink
-from flask_admin.contrib.sqla import ModelView
-import flask_login as login
 
 from config import Config
 
@@ -18,5 +15,3 @@ app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 # app.config['UPLOAD_FOLDER'] = upload_folder
 
 db = SQLAlchemy(app)
-
-from models import Users

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<div class="article login-forms">
+<div class="container">		
   <h1>Авторизація</h1>
   <form action="" method="POST">
     <div class="form-group">
@@ -16,8 +16,18 @@
     <div class="g-recaptcha" data-sitekey="{{ CONFIG.GOOGLE_RECAPTCHA_SITE_KEY }}"></div>
     <div class="login-buttons">
       <div class="login-button">
-        <button type="submit" class="btn btn-primary">Увійти</button>  
+        <button type="submit" class="btn bg-success border-dark">Увійти</button>  
       </div>     
+      <div class="login-button">
+        <a class="btn btn-block bg-primary p-0 text-white border-dark" href="/loginfb">
+          <span class="fab fa-facebook-f"></span> Увійти за допомогою Facebook
+        </a>
+      </div>
+      <div class="login-button">
+        <a class="btn btn-block bg-danger p-0 text-white border-dark" href="/logingl">
+          <span class="fab fa-google"></span> Увійти за допомогою Google
+        </a>
+      </div>
     </div>
     
     

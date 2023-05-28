@@ -11,14 +11,15 @@ from flask_admin import expose
 import utilites
 
 # from config import Config
-from models import Article, Users, Category, Images
 from app import db, app
+from models import Article, Users, Category, Images
 
 
 # ==================================================== View Models Admin
 # Create customized model view class
 class MyModelView(ModelView):
-    def is_accessible(self):        
+
+    def is_accessible(self):
         return login.current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):

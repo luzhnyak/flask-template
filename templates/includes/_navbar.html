@@ -9,9 +9,21 @@
       {% for CATEGORY in CATEGORYES %}               
         <li class="nav-item"><a class="nav-link" href="/{{CATEGORY.alias}}" title="{{CATEGORY.textbody}}">
           <i class="{{ CATEGORY.icon }} fa-lg"></i> {{CATEGORY.name}}</a>
-        </li>        
+
+
+        </li>     
       {% endfor %}                         
-      </ul>          
+      {% if session.logged_in %}
+      </li>
+        <a class="nav-link" href="/logout" title="Вийти"><i class="fas fa-sign-out-alt"></i> Вийтии</a>           
+      <li>
+      {% else %}
+      </li>
+      <a class="nav-link" href="/login" title="Увійти"><i class="fas fa-sign-in-alt"></i> Увійти</a>   
+      <li>
+      {% endif %}
+    
+    </ul>          
     
     </div>
     <form class="form-inline mb-2 form-control-sm ml-auto" method="GET" action="/search">

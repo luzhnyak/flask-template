@@ -1,0 +1,19 @@
+.login-buttons {
+    display: flex;    
+    flex-wrap: wrap;
+    margin: 10px 0 0 0;
+}
+
+.login-button {
+    margin: 0 5px 5px 0;
+}
+
+.login-button span{
+    
+    
+    width: 32px;
+    line-height: 36px;    
+    margin: 0;
+    padding: 0;
+    border-right: 1px solid rgba(0,0,0,0.2);
+}
