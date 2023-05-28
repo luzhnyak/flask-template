@@ -12,7 +12,8 @@ from models import Article, Category, Users, Images
 from functions import check_recaptcha, is_logged_in
 from config import Config
 
-categoryes = Category.query.all()
+
+
 
 # @app.errorhandler(404)
 # def page_not_fount(e):
@@ -26,6 +27,12 @@ categoryes = Category.query.all()
 # ================================================ Home page
 @app.route("/")
 def index():
+    # categoryes = Category.query.filter_by(id=1).all()
+    
+    # categoryes = db.scalars(db.select(Category))
+    # categoryes = Article.query.all()
+    categoryes = Category.query.all()
+    print (categoryes)
     return render_template('index.html', CATEGORYES=categoryes)
 
 
@@ -35,7 +42,7 @@ def index():
 @app.route("/<cat_name>/")
 @app.route("/<cat_name>")
 def posts(cat_name="", alias=""):
-
+    categoryes = Category.query.all()
     category = Category.query.filter_by(alias=cat_name).first()
     if category is None:
         print("##### Категорiя '{category}' не знайдена #####".format(category=category))
@@ -57,6 +64,7 @@ def posts(cat_name="", alias=""):
 @app.route('/login', methods=['GET', 'POST'])
 #@check_recaptcha
 def login():
+    categoryes = Category.query.all()
     if request.method == 'POST':
         # Get Form Fields
         username = request.form['username']
