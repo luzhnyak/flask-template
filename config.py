@@ -4,7 +4,7 @@ class Config(object):
     # Secret Key Flask
     secret_key = "hjhxc83p38c2pc8y8yn23phx8y2398xrmdgFfh788&(08GkyfGuygljljweekjrlwerw"
 
-    domen = "e9d9446de789.ngrok.io"
+    domen = "localhost"
     emodji = ["😄", "😛️", "😁️", "😢️", "😠️", "🐟️", "🎣️", "😍", "😎", "😠", "👿", "🐡", "🐠", "👍", "👎", "🎂", "🍹", "🍻", "🚗", "🚌", "🚲", "🚋", "⛵", "🌻"]
 
     # administrator list
