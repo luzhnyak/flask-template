@@ -5,6 +5,7 @@ import requests
 
 from flask import render_template, redirect, abort, url_for, session, request, flash, send_from_directory
 from werkzeug.utils import secure_filename
+from flask_login import current_user, login_user, logout_user
 
 import utilites
 from app import app, db
@@ -76,13 +77,8 @@ def login():
         if user is not None:
             # Compare Passwords
             if password_candidate == user.password:
-
                 flash('You are now logged in', 'success')
-                session['logged_in'] = True
-                session['username'] = user.username
-                session['name'] = user.name
-                session['user_id'] = user.id
-
+                login_user(user)
                 return redirect("/admin")
 
             else:
@@ -134,7 +130,7 @@ def loginfb():
         user = Users.query.filter_by(fb_id=user_social.get("id")).first()
 
         if user is not None:
-            login_save(user)
+            login_user(user)
 
             # flash('Ви ввійшли на сайт', 'success')
             return redirect(url_for('index'))
@@ -148,7 +144,7 @@ def loginfb():
                 user.fb_id = user_social.get("id")
                 db.session.add(user)
                 db.session.commit()
-                login_save(user)
+                login_user(user)
 
                 return redirect(url_for('index'))
 
@@ -156,19 +152,25 @@ def loginfb():
                 # error = 'Оновлено користувача'
 
                 user.fb_id = user_social.get("id")
-                login_save(user)
+                login_user(user)
                 return redirect(url_for('index'))
 
     return render_template('login.html')
 
 
-def login_save(user):
-    db.session.commit()
-    session['logged_in'] = True
-    session['username'] = user.username
-    session['name'] = user.name
-    session['user_id'] = user.id
+# def login_save(user):
+#     db.session.commit()
+#     session['logged_in'] = True
+#     session['username'] = user.username
+#     session['name'] = user.name
+#     session['user_id'] = user.id
 
+# ============================================================ User Logout
+@app.route('/logout')
+def logout():
+    logout_user()
+    flash('You are now logged out', 'success')
+    return redirect(url_for('index'))
 
 # ===============================================================Login Google
 def oauthGoogle(code):
@@ -218,7 +220,7 @@ def logingl():
 
         if user is not None:
 
-            login_save(user)           
+            login_user(user)   
             return redirect(url_for('index'))
 
         else:
@@ -230,25 +232,17 @@ def logingl():
                 user.google_id = user_social.get("id")
                 db.session.add(user)
                 db.session.commit()
-                login_save(user)
+                login_user(user)
 
                 return redirect(url_for('index'))
             else:
                 # error = 'Оновлено користувача'
 
                 user.google_id = user_social.get("id")
-                login_save(user)
+                login_user(user)
                 return redirect(url_for('index'))
 
     return render_template('login.html')
-
-# ============================================================ User Logout
-@app.route('/logout')
-@is_logged_in
-def logout():
-    session.clear()
-    flash('You are now logged out', 'success')
-    return redirect(url_for('index'))
 
 
 # ============================================================ Search

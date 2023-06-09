@@ -104,8 +104,26 @@ class Users(db.Model):
         self.username = username
         self.email = email    
 
+    # Flask-Login integration
+    # NOTE: is_authenticated, is_active, and is_anonymous
+    # are methods in Flask-Login < 0.3.0
+    @property
     def is_authenticated(self):
         return True
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return self.id
+
+    def __repr__(self):
+        return "<User ('%s')>" %  (self.username) 
 
 
 # ==================================================== View Models Admin
