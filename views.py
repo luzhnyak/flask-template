@@ -3,17 +3,14 @@ import os
 import json
 import requests
 
-from flask import render_template, redirect, abort, url_for, session, request, flash, send_from_directory
+from flask import render_template, redirect, abort, url_for, request, flash, send_from_directory
 from werkzeug.utils import secure_filename
 from flask_login import current_user, login_user, logout_user
 
 import utilites
 from app import app, db
 from models import Article, Category, Users, Images
-from functions import check_recaptcha, is_logged_in
 from config import Config
-
-
 
 
 # @app.errorhandler(404)
@@ -29,11 +26,11 @@ from config import Config
 @app.route("/")
 def index():
     # categoryes = Category.query.filter_by(id=1).all()
-    
+
     # categoryes = db.scalars(db.select(Category))
     # categoryes = Article.query.all()
     categoryes = Category.query.all()
-    print (categoryes)
+    print(categoryes)
     return render_template('index.html', CATEGORYES=categoryes)
 
 
@@ -46,7 +43,8 @@ def posts(cat_name="", alias=""):
     categoryes = Category.query.all()
     category = Category.query.filter_by(alias=cat_name).first()
     if category is None:
-        print("##### Категорiя '{category}' не знайдена #####".format(category=category))
+        print("##### Категорiя '{category}' не знайдена #####".format(
+            category=category))
         return redirect(abort(404))
 
     if alias == "":
@@ -55,7 +53,8 @@ def posts(cat_name="", alias=""):
 
     article = Article.query.filter_by(alias=alias).first()
     if article is None:
-        print("##### Публiкацiя '{alias}' не знайдена #####".format(alias=alias))
+        print("##### Публiкацiя '{alias}' не знайдена #####".format(
+            alias=alias))
         return redirect(abort(404))
 
     return render_template("/article.html", ARTICLE=article, CATEGORYES=categoryes)
@@ -63,7 +62,7 @@ def posts(cat_name="", alias=""):
 
 # ================================================ User Login
 @app.route('/login', methods=['GET', 'POST'])
-#@check_recaptcha
+# @check_recaptcha
 def login():
     categoryes = Category.query.all()
     if request.method == 'POST':
@@ -118,13 +117,15 @@ def oauthFacebook(code):
 def loginfb():
 
     if "code" not in request.args:
-        url = "https://www.facebook.com/v3.0/dialog/oauth?client_id=" + Config.FB_CLIENT_ID + "&redirect_uri=https://" + Config.domen + "/loginfb&state=goldfishnetfacebooktoken&scope=email"
+        url = "https://www.facebook.com/v3.0/dialog/oauth?client_id=" + Config.FB_CLIENT_ID + \
+            "&redirect_uri=https://" + Config.domen + \
+            "/loginfb&state=goldfishnetfacebooktoken&scope=email"
         return redirect(url)
 
     elif "code" in request.args:
         user_social = oauthFacebook(request.args.get("code"))
         # Get user by username
-        if "error" in user_social:  
+        if "error" in user_social:
             return redirect(url_for('login'))
 
         user = Users.query.filter_by(fb_id=user_social.get("id")).first()
@@ -136,11 +137,13 @@ def loginfb():
             return redirect(url_for('index'))
 
         else:
-            user = Users.query.filter_by(email=user_social.get("email")).first()
+            user = Users.query.filter_by(
+                email=user_social.get("email")).first()
 
             if user is None:
                 # Створюємо нового користувача
-                user = Users(user_social.get("name"), user_social.get("email"), user_social.get("email"))
+                user = Users(user_social.get("name"), user_social.get(
+                    "email"), user_social.get("email"))
                 user.fb_id = user_social.get("id")
                 db.session.add(user)
                 db.session.commit()
@@ -173,6 +176,8 @@ def logout():
     return redirect(url_for('index'))
 
 # ===============================================================Login Google
+
+
 def oauthGoogle(code):
 
     session = requests.Session()
@@ -220,15 +225,17 @@ def logingl():
 
         if user is not None:
 
-            login_user(user)   
+            login_user(user)
             return redirect(url_for('index'))
 
         else:
-            user = Users.query.filter_by(email=user_social.get("email")).first()
+            user = Users.query.filter_by(
+                email=user_social.get("email")).first()
             if user is None:
                 # error = 'Створено нового користувача'
 
-                user = Users(user_social.get("name"), user_social.get("email"), user_social.get("email"))
+                user = Users(user_social.get("name"), user_social.get(
+                    "email"), user_social.get("email"))
                 user.google_id = user_social.get("id")
                 db.session.add(user)
                 db.session.commit()
@@ -249,7 +256,7 @@ def logingl():
 @app.route("/search", methods=['GET', 'POST'])
 @app.route("/search/", methods=['GET', 'POST'])
 def search():
-    return render_template("/search.html", CATEGORYES=categoryes)
+    return render_template("/search.html")
 
 
 # ============================================================ Favicon
@@ -273,8 +280,10 @@ def upload_file(id=""):
         if files:
 
             # load_photo(files, path_image, 768, path_thumbnail, 150)
-            filename = secure_filename(utilites.transliterate(files[0].filename, "."))
-            input_image_folder = Config.full_images_folder + "/articles/" + str(id) + "/"
+            filename = secure_filename(
+                utilites.transliterate(files[0].filename, "."))
+            input_image_folder = Config.full_images_folder + \
+                "/articles/" + str(id) + "/"
 
             if os.path.exists(input_image_folder):
                 files[0].save(input_image_folder + filename)
