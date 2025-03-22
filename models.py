@@ -1,16 +1,8 @@
-from app import db
-from flask_admin.contrib.sqla import ModelView
-# from flask_admin import form
 from flask import flash, redirect, url_for, session, request
 from functools import wraps
-import flask_login as login
-from flask_admin import AdminIndexView
-from flask_admin import expose
-# from jinja2 import Markup
-import requests
 import re
-import utilites
-from config import Config
+
+from app import db
 
 
 def is_logged_in(f):
@@ -23,6 +15,7 @@ def is_logged_in(f):
             return redirect(url_for('login'))
 
     return wrap
+
 
 class Article(db.Model):
     def __init__(self):
@@ -102,11 +95,8 @@ class Users(db.Model):
     def __init__(self, name, username, email):
         self.name = name
         self.username = username
-        self.email = email    
+        self.email = email
 
-    # Flask-Login integration
-    # NOTE: is_authenticated, is_active, and is_anonymous
-    # are methods in Flask-Login < 0.3.0
     @property
     def is_authenticated(self):
         return True
@@ -123,77 +113,4 @@ class Users(db.Model):
         return self.id
 
     def __repr__(self):
-        return "<User ('%s')>" %  (self.username) 
-
-
-# ==================================================== View Models Admin
-# Create customized model view class
-class MyModelView(ModelView):
-    def is_accessible(self):
-        if login.current_user.is_authenticated:
-            return login.current_user.role_id == 1
-        return login.current_user.is_authenticated
-
-    def inaccessible_callback(self, name, **kwargs):
-        # redirect to login page if user doesn't have access
-        return redirect(url_for('login', next=request.url))
-
-
-# Create customized index view class that handles login & registration
-class MyAdminIndexView(AdminIndexView):
-
-    def is_accessible(self):
-        return login.current_user.is_authenticated
-
-    def inaccessible_callback(self, name, **kwargs):
-        # redirect to login page if user doesn't have access
-        return redirect(url_for('login', next=request.url))
-
-    @expose('/', methods=['GET', 'POST'])
-    def index(self):
-        articles = Article.query
-        # COMENTS = Coments.query.filter_by(user_id=login.current_user.id)
-        # form = ComentsForm(request.form)
-        # if request.method == 'POST' and form.validate():
-        # 	coment = Coments.query.filter_by(id=int(form.id.data)).first()
-        # 	coment.coment = form.message.data
-        # 	adb.session.commit()
-
-        # 	flash('Коментар змінено', 'success')
-        return self.render('admin/index.html', ARTICLES=articles, Article=Article, db=db)
-
-
-class ArticlesView(ModelView):
-
-    edit_template = 'admin/edit_article.html'
-    create_template = 'admin/edit_article.html'
-    # page_size = 50  # the number of entries to display on the list view
-    column_exclude_list = ['textbody']
-    form_widget_args = {
-        'textbody': {
-            'rows': 25,
-            'class': 'form-control wysiwyg'
-        }
-    }
-
-    def _change_alias(self, _form):
-        try:
-            if _form.alias.data is None:
-                _form.alias.data = utilites.transliterate(_form.title.data)
-            else:
-                _form.alias.data = utilites.transliterate(_form.alias.data)
-
-        except Exception as ex:
-            print(ex)
-
-        return _form
-
-    def edit_form(self, obj=None):
-        return self._change_alias(
-            super(ArticlesView, self).edit_form(obj)
-        )
-
-    def create_form(self, obj=None):
-        return self._change_alias(
-            super(ArticlesView, self).create_form(obj)
-        )
+        return "<User ('%s')>" % (self.username)
