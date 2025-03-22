@@ -98,7 +98,7 @@ def oauthFacebook(code):
     params = {
         "client_id": Config.FB_CLIENT_ID,
         "client_secret": Config.FB_SECRET,
-        "redirect_uri": "https://" + Config.domen + "/loginfb",
+        "redirect_uri": "https://" + Config.DOMEN + "/loginfb",
         "code": code}
 
     response = requests.get(url, params=params)
@@ -118,7 +118,7 @@ def loginfb():
 
     if "code" not in request.args:
         url = "https://www.facebook.com/v3.0/dialog/oauth?client_id=" + Config.FB_CLIENT_ID + \
-            "&redirect_uri=https://" + Config.domen + \
+            "&redirect_uri=https://" + Config.DOMEN + \
             "/loginfb&state=goldfishnetfacebooktoken&scope=email"
         return redirect(url)
 
@@ -191,7 +191,7 @@ def oauthGoogle(code):
     params = {
         "client_id": Config.OAUTH_CLIENT_ID,
         "client_secret": Config.OAUTH_SECRET,
-        "redirect_uri": "https://" + Config.domen + "/logingl",
+        "redirect_uri": "https://" + Config.DOMEN + "/logingl",
         "grant_type": "authorization_code",
         "code": code}
 
@@ -213,7 +213,7 @@ def oauthGoogle(code):
 def logingl():
 
     if "code" not in request.args:
-        return redirect("https://accounts.google.com/o/oauth2/auth?redirect_uri=https://" + Config.domen + "/logingl&response_type=code&client_id=" + Config.OAUTH_CLIENT_ID + "&scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile")
+        return redirect("https://accounts.google.com/o/oauth2/auth?redirect_uri=https://" + Config.DOMEN + "/logingl&response_type=code&client_id=" + Config.OAUTH_CLIENT_ID + "&scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile")
 
     elif "code" in request.args:
         user_social = oauthGoogle(request.args.get("code"))
