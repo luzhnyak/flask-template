@@ -3,12 +3,8 @@ from config import Config
 from functools import wraps
 import requests
 
+
 def check_recaptcha(f):
-    """
-    Checks Google  reCAPTCHA.
-    :param f: view function
-    :return: Function
-    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         request.recaptcha_is_valid = None

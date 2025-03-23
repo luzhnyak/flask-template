@@ -24,10 +24,6 @@ from config import Config
 # ================================================ Home page
 @app.route("/")
 def index():
-    # categoryes = Category.query.filter_by(id=1).all()
-
-    # categoryes = db.scalars(db.select(Category))
-    # categoryes = Article.query.all()
     categoryes = Category.query.all()
     print(categoryes)
     return render_template('index.html', CATEGORYES=categoryes)
@@ -65,15 +61,14 @@ def posts(cat_name="", alias=""):
 def login():
     categoryes = Category.query.all()
     if request.method == 'POST':
-        # Get Form Fields
+
         username = request.form['username']
         password_candidate = request.form['password']
 
-        # Get user by username
         user = Users.query.filter_by(username=username).first()
 
         if user is not None:
-            # Compare Passwords
+
             if password_candidate == user.password:
                 flash('You are now logged in', 'success')
                 login_user(user)
@@ -103,7 +98,6 @@ def oauthFacebook(code):
     response = requests.get(url, params=params)
     url = "https://graph.facebook.com/me"
 
-    # print(response.json().get("access_token"))
     params = {
         "access_token": response.json().get("access_token"),
         "fields": "id,name,email,link"}
