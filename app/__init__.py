@@ -14,9 +14,10 @@ login_manager = LoginManager()
 def create_app():
     app = Flask(__name__)
 
+    print("DATABASE_URL", config.DATABASE_URL)
+
     app.secret_key = config.SECRET_KEY
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{
-        config.APP_FOLDER}/app/infrastructure/db/data.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.DATABASE_URL
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 

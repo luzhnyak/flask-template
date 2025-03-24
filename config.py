@@ -4,11 +4,15 @@ import os
 
 class Config(BaseSettings):
     DOMEN: str = "http://localhost:5000"
-    DATABASE_URL: str = "sqlite:///db.sqlite3"
+
     SECRET_KEY: str = "your_default_secret_key"
     DEBUG: bool = True
 
     APP_FOLDER: str
+
+    @property
+    def DATABASE_URL(self):
+        return f'sqlite:///{os.path.join(self.APP_FOLDER, "app", "infrastructure", "db", "data.db")}'
 
     @property
     def ALLOWED_EXTENSIONS(self) -> set:
