@@ -1,8 +1,8 @@
-from flask import flash, redirect, url_for, session, request
+from flask import flash, redirect, url_for, session
 from functools import wraps
 import re
 
-from app import db
+from app.infrastructure.database import db
 
 
 def is_logged_in(f):
@@ -17,12 +17,12 @@ def is_logged_in(f):
     return wrap
 
 
-class Article(db.Model):
+class Posts(db.Model):
     def __init__(self):
         self.title = "title"
 
     def __repr__(self):
-        return "<Article('%s')>" % (self.title)
+        return "<Posts('%s')>" % (self.title)
 
     __tablename__ = 'article'
     id = db.Column(db.Integer, primary_key=True)

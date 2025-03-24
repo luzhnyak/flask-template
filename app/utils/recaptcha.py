@@ -1,17 +1,22 @@
 from flask import flash, redirect, url_for, session, request
-from config import Config
+from config import config
 from functools import wraps
 import requests
 
 
 def check_recaptcha(f):
+    """
+    Checks Google  reCAPTCHA.
+    :param f: view function
+    :return: Function
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         request.recaptcha_is_valid = None
 
         if request.method == 'POST':
             data = {
-                'secret': Config.GOOGLE_RECAPTCHA_SECRET_KEY,
+                'secret': config.GOOGLE_RECAPTCHA_SECRET_KEY,
                 'response': request.form.get('g-recaptcha-response'),
                 'remoteip': request.access_route[0]
             }

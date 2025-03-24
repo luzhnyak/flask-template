@@ -1,74 +1,30 @@
-import os
-import json
 import requests
-
-from flask import render_template, redirect, abort, url_for, request, flash, send_from_directory
-from werkzeug.utils import secure_filename
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import current_user, login_user, logout_user
 
-import utilites
-from app import app, db
-from models import Article, Category, Users, Images
-from config import Config
+import app.utils.utilites as utilites
+from app import db
+from app.infrastructure.models import Category, Users
+from config import config
 
-
-# @app.errorhandler(404)
-# def page_not_fount(e):
-# 	redirect_url = Redirect.query.filter_by(url=request.path).first()
-# 	if redirect_url != None:
-# 		return redirect(request.url_root[:-1] + redirect_url.redirect_url)
-# 	add_to_log404(request.path, request.referrer)
-# 	return render_template('404.html'), 404
-
-
-# ================================================ Home page
-@app.route("/")
-def index():
-    categoryes = Category.query.all()
-    print(categoryes)
-    return render_template('index.html', CATEGORYES=categoryes)
-
-
-# ================================================ Posts
-@app.route("/<cat_name>/<alias>/")
-@app.route("/<cat_name>/<alias>")
-@app.route("/<cat_name>/")
-@app.route("/<cat_name>")
-def posts(cat_name="", alias=""):
-    categoryes = Category.query.all()
-    category = Category.query.filter_by(alias=cat_name).first()
-    if category is None:
-        print("##### Категорiя '{category}' не знайдена #####".format(
-            category=category))
-        return redirect(abort(404))
-
-    if alias == "":
-        articles = Article.query.filter_by(cat_id=category.id)
-        return render_template("/articles.html", ARTICLES=articles, CATEGORY=category, CATEGORYES=categoryes)
-
-    article = Article.query.filter_by(alias=alias).first()
-    if article is None:
-        print("##### Публiкацiя '{alias}' не знайдена #####".format(
-            alias=alias))
-        return redirect(abort(404))
-
-    return render_template("/article.html", ARTICLE=article, CATEGORYES=categoryes)
+auth_bp = Blueprint("auth", __name__)
 
 
 # ================================================ User Login
-@app.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 # @check_recaptcha
 def login():
     categoryes = Category.query.all()
     if request.method == 'POST':
-
+        # Get Form Fields
         username = request.form['username']
         password_candidate = request.form['password']
 
+        # Get user by username
         user = Users.query.filter_by(username=username).first()
 
         if user is not None:
-
+            # Compare Passwords
             if password_candidate == user.password:
                 flash('You are now logged in', 'success')
                 login_user(user)
@@ -79,9 +35,9 @@ def login():
                 return render_template('login.html', error=error)
         else:
             error = 'Користувач не знайдений'
-            return render_template('login.html', error=error, CATEGORYES=categoryes, CONFIG=Config)
+            return render_template('login.html', error=error, CATEGORYES=categoryes, CONFIG=config)
 
-    return render_template('login.html', CATEGORYES=categoryes, CONFIG=Config)
+    return render_template('login.html', CATEGORYES=categoryes, CONFIG=config)
 
 
 # ===============================================================Login Facebook
@@ -90,14 +46,15 @@ def oauthFacebook(code):
     url = "https://graph.facebook.com/oauth/access_token"
 
     params = {
-        "client_id": Config.FB_CLIENT_ID,
-        "client_secret": Config.FB_SECRET,
-        "redirect_uri": "https://" + Config.DOMEN + "/loginfb",
+        "client_id": config.FB_CLIENT_ID,
+        "client_secret": config.FB_SECRET,
+        "redirect_uri": "https://" + config.DOMEN + "/loginfb",
         "code": code}
 
     response = requests.get(url, params=params)
     url = "https://graph.facebook.com/me"
 
+    # print(response.json().get("access_token"))
     params = {
         "access_token": response.json().get("access_token"),
         "fields": "id,name,email,link"}
@@ -106,12 +63,12 @@ def oauthFacebook(code):
     return response.json()
 
 
-@app.route('/loginfb', methods=['GET', 'POST'])
+@auth_bp.route('/loginfb', methods=['GET', 'POST'])
 def loginfb():
 
     if "code" not in request.args:
-        url = "https://www.facebook.com/v3.0/dialog/oauth?client_id=" + Config.FB_CLIENT_ID + \
-            "&redirect_uri=https://" + Config.DOMEN + \
+        url = "https://www.facebook.com/v3.0/dialog/oauth?client_id=" + config.FB_CLIENT_ID + \
+            "&redirect_uri=https://" + config.DOMEN + \
             "/loginfb&state=goldfishnetfacebooktoken&scope=email"
         return redirect(url)
 
@@ -162,7 +119,7 @@ def loginfb():
 #     session['user_id'] = user.id
 
 # ============================================================ User Logout
-@app.route('/logout')
+@auth_bp.route('/logout')
 def logout():
     logout_user()
     flash('You are now logged out', 'success')
@@ -182,9 +139,9 @@ def oauthGoogle(code):
     url = "https://www.googleapis.com/oauth2/v4/token"
 
     params = {
-        "client_id": Config.OAUTH_CLIENT_ID,
-        "client_secret": Config.OAUTH_SECRET,
-        "redirect_uri": "https://" + Config.DOMEN + "/logingl",
+        "client_id": config.OAUTH_CLIENT_ID,
+        "client_secret": config.OAUTH_SECRET,
+        "redirect_uri": "https://" + config.DOMEN + "/logingl",
         "grant_type": "authorization_code",
         "code": code}
 
@@ -202,11 +159,11 @@ def oauthGoogle(code):
     return response.json()
 
 
-@app.route('/logingl', methods=['GET', 'POST'])
+@auth_bp.route('/logingl', methods=['GET', 'POST'])
 def logingl():
 
     if "code" not in request.args:
-        return redirect("https://accounts.google.com/o/oauth2/auth?redirect_uri=https://" + Config.DOMEN + "/logingl&response_type=code&client_id=" + Config.OAUTH_CLIENT_ID + "&scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile")
+        return redirect(f"https://accounts.google.com/o/oauth2/auth?redirect_uri=https://{config.DOMEN}/logingl&response_type=code&client_id=" + config.OAUTH_CLIENT_ID + "&scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile")
 
     elif "code" in request.args:
         user_social = oauthGoogle(request.args.get("code"))
@@ -243,56 +200,3 @@ def logingl():
                 return redirect(url_for('index'))
 
     return render_template('login.html')
-
-
-# ============================================================ Search
-@app.route("/search", methods=['GET', 'POST'])
-@app.route("/search/", methods=['GET', 'POST'])
-def search():
-    return render_template("/search.html")
-
-
-# ============================================================ Favicon
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static/img'), 'favicon.ico')
-
-
-# ============================================================ Files
-@app.route('/admin/check-file/<id>', methods=['GET', 'POST'])
-def check_file(id=""):
-    return render_template('file-browse.html', files=Images.query.all(), ARTICLE_ID=id)
-
-
-@app.route('/admin/upload-file/<id>', methods=['GET', 'POST'])
-def upload_file(id=""):
-    JSON = {}
-    if request.method == 'POST':
-        files = request.files.getlist('upload')
-
-        if files:
-
-            # load_photo(files, path_image, 768, path_thumbnail, 150)
-            filename = secure_filename(
-                utilites.transliterate(files[0].filename, "."))
-            input_image_folder = Config.full_images_folder + \
-                "/articles/" + str(id) + "/"
-
-            if os.path.exists(input_image_folder):
-                files[0].save(input_image_folder + filename)
-            else:
-                os.mkdir(input_image_folder)
-                files[0].save(input_image_folder + filename)
-
-            path = "/articles/" + str(id) + "/" + filename
-
-            JSON["fileName"] = filename
-            JSON["uploaded"] = 1
-            JSON["url"] = Config.images_folder + path
-
-            image = Images(filename, path, "", utilites.timeNow("u"), id)
-            db.session.add(image)
-            db.session.commit()
-
-    JSON = json.dumps(JSON, ensure_ascii=True, indent=None, sort_keys=False)
-    return JSON, {'Content-Type': 'text/json'}
