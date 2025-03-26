@@ -6,13 +6,17 @@ from app.infrastructure.models import Posts, Users, Category, Images
 from app.presentation.admin.views import MyAdminIndexView, PostsView
 
 
-admin = Admin(name='Admin Panel',
-              index_view=MyAdminIndexView(), template_mode='bootstrap3')
+admin = Admin(
+    name="Admin Panel", index_view=MyAdminIndexView(), template_mode="bootstrap3"
+)
 
 
 def init_admin(app):
-    admin.init_app(app)
+    if not hasattr(app, "flask_admin_initialized"):
+        admin.init_app(app)
 
-    admin.add_view(PostsView(Posts, db.session))
-    admin.add_view(ModelView(Category, db.session))
-    admin.add_view(ModelView(Images, db.session))
+        admin.add_view(PostsView(Posts, db.session))
+        admin.add_view(ModelView(Category, db.session))
+        admin.add_view(ModelView(Images, db.session))
+
+        app.flask_admin_initialized = True

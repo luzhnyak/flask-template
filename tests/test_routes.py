@@ -3,11 +3,11 @@ def test_homepage(client):
     assert response.status_code == 200
 
 
-def test_protected_route(client):
-    response = client.get("/first")
+def test_search_route(client):
+    response = client.get("/search")
     assert response.status_code == 200
 
 
-def test_protected_route(client):
-    response = client.get("/second")
+def test_login_route(client):
+    response = client.get("/login")
     assert response.status_code == 200
