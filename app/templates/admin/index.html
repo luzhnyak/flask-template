@@ -11,7 +11,7 @@
 <nav class="">  
 
   <ul class="nav flex-column">
-    {% for ART in ARTICLES.order_by(db.desc(Posts.hits)).all()[0:10] %}   
+    {% for ART in ARTICLES.order_by(db.desc(Post.hits)).all()[0:10] %}   
       <li class="nav-item">
       <span>
         <a class="nav-link" href="/{{ ART.category.alias }}/{{ ART.alias }}" title="{{ ART.hits }} переглядів">   

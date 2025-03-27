@@ -4,40 +4,42 @@ from flask_login import current_user, login_user, logout_user
 
 import app.utils.utilites as utilites
 from app import db
-from app.infrastructure.models import Category, Users
+from app.infrastructure.models import Category, User
 from config import config
 
 auth_bp = Blueprint("auth", __name__)
 
 
 # ================================================ User Login
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route("/login", methods=["GET", "POST"])
 # @check_recaptcha
 def login():
     categoryes = Category.query.all()
-    if request.method == 'POST':
+    if request.method == "POST":
         # Get Form Fields
-        username = request.form['username']
-        password_candidate = request.form['password']
+        username = request.form["username"]
+        password_candidate = request.form["password"]
 
         # Get user by username
-        user = Users.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username).first()
 
         if user is not None:
             # Compare Passwords
             if password_candidate == user.password:
-                flash('You are now logged in', 'success')
+                flash("You are now logged in", "success")
                 login_user(user)
                 return redirect("/admin")
 
             else:
-                error = 'Невiрний пароль чи логiн'
-                return render_template('login.html', error=error)
+                error = "Невiрний пароль чи логiн"
+                return render_template("login.html", error=error)
         else:
-            error = 'Користувач не знайдений'
-            return render_template('login.html', error=error, CATEGORYES=categoryes, CONFIG=config)
+            error = "Користувач не знайдений"
+            return render_template(
+                "login.html", error=error, CATEGORYES=categoryes, CONFIG=config
+            )
 
-    return render_template('login.html', CATEGORYES=categoryes, CONFIG=config)
+    return render_template("login.html", CATEGORYES=categoryes, CONFIG=config)
 
 
 # ===============================================================Login Facebook
@@ -49,7 +51,8 @@ def oauthFacebook(code):
         "client_id": config.FB_CLIENT_ID,
         "client_secret": config.FB_SECRET,
         "redirect_uri": "https://" + config.DOMEN + "/loginfb",
-        "code": code}
+        "code": code,
+    }
 
     response = requests.get(url, params=params)
     url = "https://graph.facebook.com/me"
@@ -57,58 +60,65 @@ def oauthFacebook(code):
     # print(response.json().get("access_token"))
     params = {
         "access_token": response.json().get("access_token"),
-        "fields": "id,name,email,link"}
+        "fields": "id,name,email,link",
+    }
 
     response = requests.get(url, params=params)
     return response.json()
 
 
-@auth_bp.route('/loginfb', methods=['GET', 'POST'])
+@auth_bp.route("/loginfb", methods=["GET", "POST"])
 def loginfb():
 
     if "code" not in request.args:
-        url = "https://www.facebook.com/v3.0/dialog/oauth?client_id=" + config.FB_CLIENT_ID + \
-            "&redirect_uri=https://" + config.DOMEN + \
-            "/loginfb&state=goldfishnetfacebooktoken&scope=email"
+        url = (
+            "https://www.facebook.com/v3.0/dialog/oauth?client_id="
+            + config.FB_CLIENT_ID
+            + "&redirect_uri=https://"
+            + config.DOMEN
+            + "/loginfb&state=goldfishnetfacebooktoken&scope=email"
+        )
         return redirect(url)
 
     elif "code" in request.args:
         user_social = oauthFacebook(request.args.get("code"))
         # Get user by username
         if "error" in user_social:
-            return redirect(url_for('login'))
+            return redirect(url_for("login"))
 
-        user = Users.query.filter_by(fb_id=user_social.get("id")).first()
+        user = User.query.filter_by(fb_id=user_social.get("id")).first()
 
         if user is not None:
             login_user(user)
 
             # flash('Ви ввійшли на сайт', 'success')
-            return redirect(url_for('index'))
+            return redirect(url_for("index"))
 
         else:
-            user = Users.query.filter_by(
-                email=user_social.get("email")).first()
+            user = User.query.filter_by(email=user_social.get("email")).first()
 
             if user is None:
                 # Створюємо нового користувача
-                user = Users(user_social.get("name"), user_social.get(
-                    "email"), user_social.get("email"))
+                user = User(
+                    user_social.get("name"),
+                    user_social.get("email"),
+                    user_social.get("email"),
+                )
                 user.fb_id = user_social.get("id")
                 db.session.add(user)
                 db.session.commit()
                 login_user(user)
 
-                return redirect(url_for('index'))
+                return redirect(url_for("index"))
 
             else:
                 # error = 'Оновлено користувача'
 
                 user.fb_id = user_social.get("id")
                 login_user(user)
-                return redirect(url_for('index'))
+                return redirect(url_for("index"))
 
-    return render_template('login.html')
+    return render_template("login.html")
 
 
 # def login_save(user):
@@ -118,12 +128,14 @@ def loginfb():
 #     session['name'] = user.name
 #     session['user_id'] = user.id
 
+
 # ============================================================ User Logout
-@auth_bp.route('/logout')
+@auth_bp.route("/logout")
 def logout():
     logout_user()
-    flash('You are now logged out', 'success')
-    return redirect(url_for('index'))
+    flash("You are now logged out", "success")
+    return redirect(url_for("index"))
+
 
 # ===============================================================Login Google
 
@@ -132,7 +144,7 @@ def oauthGoogle(code):
 
     session = requests.Session()
     # session.headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; rv:40.0) Gecko/20100101 Firefox/40.0'}
-    session.headers = {'Content-Type': 'db.lication/x-www-form-urlencoded'}
+    session.headers = {"Content-Type": "db.lication/x-www-form-urlencoded"}
     # session.headers = {'Host:': 'www.googleapis.com'}
     # POST /oauth2/v4/token HTTP/1.1
 
@@ -143,7 +155,8 @@ def oauthGoogle(code):
         "client_secret": config.OAUTH_SECRET,
         "redirect_uri": "https://" + config.DOMEN + "/logingl",
         "grant_type": "authorization_code",
-        "code": code}
+        "code": code,
+    }
 
     response = session.post(url, params=params)
     # print(response.json().get("access_token"))
@@ -153,50 +166,57 @@ def oauthGoogle(code):
     # print (response.json().get("access_token"))
     params = {
         "access_token": response.json().get("access_token"),
-        "fields": "id,name,email"}
+        "fields": "id,name,email",
+    }
 
     response = requests.get(url, params=params)
     return response.json()
 
 
-@auth_bp.route('/logingl', methods=['GET', 'POST'])
+@auth_bp.route("/logingl", methods=["GET", "POST"])
 def logingl():
 
     if "code" not in request.args:
-        return redirect(f"https://accounts.google.com/o/oauth2/auth?redirect_uri=https://{config.DOMEN}/logingl&response_type=code&client_id=" + config.OAUTH_CLIENT_ID + "&scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile")
+        return redirect(
+            f"https://accounts.google.com/o/oauth2/auth?redirect_uri=https://{config.DOMEN}/logingl&response_type=code&client_id="
+            + config.OAUTH_CLIENT_ID
+            + "&scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+        )
 
     elif "code" in request.args:
         user_social = oauthGoogle(request.args.get("code"))
         # print (user_social)
         if "error" in user_social:
-            return redirect(url_for('login'))
+            return redirect(url_for("login"))
 
-        user = Users.query.filter_by(google_id=user_social.get("id")).first()
+        user = User.query.filter_by(google_id=user_social.get("id")).first()
 
         if user is not None:
 
             login_user(user)
-            return redirect(url_for('index'))
+            return redirect(url_for("index"))
 
         else:
-            user = Users.query.filter_by(
-                email=user_social.get("email")).first()
+            user = User.query.filter_by(email=user_social.get("email")).first()
             if user is None:
                 # error = 'Створено нового користувача'
 
-                user = Users(user_social.get("name"), user_social.get(
-                    "email"), user_social.get("email"))
+                user = User(
+                    user_social.get("name"),
+                    user_social.get("email"),
+                    user_social.get("email"),
+                )
                 user.google_id = user_social.get("id")
                 db.session.add(user)
                 db.session.commit()
                 login_user(user)
 
-                return redirect(url_for('index'))
+                return redirect(url_for("index"))
             else:
                 # error = 'Оновлено користувача'
 
                 user.google_id = user_social.get("id")
                 login_user(user)
-                return redirect(url_for('index'))
+                return redirect(url_for("index"))
 
-    return render_template('login.html')
+    return render_template("login.html")
