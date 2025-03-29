@@ -37,6 +37,12 @@ def create_app():
 
     init_admin(app)  # 📌 Підключаємо Flask-Admin
 
+    @app.context_processor
+    def inject_constants():
+        return {
+            "MENU_ITEMS": [],
+        }
+
     app.register_blueprint(views_bp)
     app.register_blueprint(auth_bp)
 

@@ -7,9 +7,9 @@
         
     <div id="navbarNav" class="collapse navbar-collapse">
       <ul class="nav navbar-nav mr-auto">
-      {% for CATEGORY in CATEGORYES %}               
-        <li class="nav-item"><a class="nav-link" href="/{{CATEGORY.alias}}" title="{{CATEGORY.textbody}}">
-          <i class="{{ CATEGORY.icon }} fa-lg"></i> {{CATEGORY.name}}</a>
+      {% for ITEM in MENU_ITEMS %}               
+        <li class="nav-item"><a class="nav-link" href="/{{ITEM.alias}}" title="{{ITEM.content}}">
+          <i class="{{ ITEM.icon }} fa-lg"></i> {{ITEM.name}}</a>
 
 
         </li>     

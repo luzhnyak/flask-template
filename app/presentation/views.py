@@ -34,13 +34,7 @@ views_bp = Blueprint("views", __name__)
 # ================================================ Home page
 @views_bp.route("/")
 def index():
-    # categoryes = Category.query.filter_by(id=1).all()
-
-    # categoryes = db.scalars(db.select(Category))
-    # categoryes = Posts.query.all()
-    categoryes = Category.query.all()
-    print(categoryes)
-    return render_template("index.html", CATEGORYES=categoryes)
+    return render_template("index.html")
 
 
 # ================================================ Posts

@@ -1,26 +1,28 @@
 {% extends "base.html" %}
 
 {% block title %}	
-	<title>Flask start</title>    
+    <title>Flask start</title>    
 {% endblock %}
 
 {% block metatags %}    
-	<meta name="description" content="Flask" />
-	<meta name="keywords" content="python, flask" />	
+    <meta name="description" content="Flask" />
+    <meta name="keywords" content="python, flask" />	
 {% endblock %}
 
 {% block body %}
 <div class="container">		
-{% for CATEGORY in CATEGORYES %}      
+{% for POST in POSTS %}      
 <div class="col-lg-4 col-sm-6 p-2">
-	<div class="card">
-		<div class="card-header"><a class="" href="/{{CATEGORY.alias}}" title="{{CATEGORY.textbody}}"><i class="{{ CATEGORY.icon }} fa-lg"></i> {{CATEGORY.name}}</a></div> 
-		<div class="card-body">
-			<div class="card-title">
-  				{{ CATEGORY.textbody }}  
-			</div>  
-		</div>  
-	</div>
+    <div class="card">
+        <div class="card-header">
+            <a class="" href="/{{CATEGORY.alias}}" title="{{CATEGORY.textbody}}"><i class="{{ CATEGORY.icon }} fa-lg"></i> {{CATEGORY.name}}</a>
+        </div> 
+        <div class="card-body">
+            <div class="card-title">
+                {{ CATEGORY.textbody }}  
+            </div>  
+        </div>  
+    </div>
 </div>    
 {% endfor %}  
 </div>
