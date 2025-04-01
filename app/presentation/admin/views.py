@@ -32,13 +32,13 @@ class MyAdminIndexView(AdminIndexView):
 
     def inaccessible_callback(self, name, **kwargs):
         # redirect to login page if user doesn't have access
-        return redirect(url_for("views.login", next=request.url))
+        return redirect(url_for("auth.login", next=request.url))
         # return redirect('/login')
 
     @expose("/", methods=["GET", "POST"])
     def index(self):
-        articles = Post.query
-        return self.render("admin/index.html", ARTICLES=articles, Post=Post, db=db)
+        posts = Post.query.all()
+        return self.render("admin/index.html", POSTS=posts)
 
 
 class PostsView(ModelView):

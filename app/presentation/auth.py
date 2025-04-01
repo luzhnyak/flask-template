@@ -17,11 +17,11 @@ def login():
     categoryes = Category.query.all()
     if request.method == "POST":
         # Get Form Fields
-        username = request.form["username"]
+        email = request.form["email"]
         password_candidate = request.form["password"]
 
         # Get user by username
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
 
         if user is not None:
             # Compare Passwords

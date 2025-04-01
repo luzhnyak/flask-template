@@ -8,51 +8,21 @@
 <div class="panel-heading">Найпопулярніші пости</div> 
 <div class="panel-body">
 
-<nav class="">  
-
+<nav class="">
   <ul class="nav flex-column">
-    {% for ART in ARTICLES.order_by(db.desc(Post.hits)).all()[0:10] %}   
+    {% for POST in POSTS[0:10] %}   
       <li class="nav-item">
-      <span>
-        <a class="nav-link" href="/{{ ART.category.alias }}/{{ ART.alias }}" title="{{ ART.hits }} переглядів">   
-        <i class="{{ ART.category.icon }} fa-lg"></i>              
-        {{ ART.title }}        
-        </a>
-        <a class="nav-link" title="Edit" href="/admin/article/edit/?id={{ ART.id }}" >   
+      <span>        
+        {{ POST.title }}                
+        <a class="nav-link" title="Edit" href="/admin/article/edit/?id={{ POST.id }}" >   
         <i class="fas fa-edit"></i>          
         </a>
       </span>    
       </li>           
     {% endfor %}    
   </ul>
-</nav>
-  
-</div>  
-</div>  
+</nav> 
 
-<div class="panel panel-default">
-<div class="panel-heading">Остані пости</div>   
-<div class="panel-body">
-
-<nav class="">  
-
-  <ul class="nav flex-column">
-    {% for ART in ARTICLES.all()[-10:] %}   
-      <li class="nav-item">
-        <span>
-        <a class="nav-link" href="/{{ ART.category.alias }}/{{ ART.alias }}" >   
-        <i class="{{ ART.category.icon }} fa-lg"></i>      
-        {{ ART.title }} 
-          
-        </a>
-        <a class="nav-link" title="Edit" href="/admin/article/edit/?id={{ ART.id }}" >   
-        <i class="fas fa-edit"></i>          
-        </a>
-        </span> 
-      </li>           
-    {% endfor %}    
-  </ul>
-</nav>
 
 </div>
 </div>  
