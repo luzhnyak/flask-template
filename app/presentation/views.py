@@ -38,34 +38,27 @@ def index():
 
 
 # ================================================ Posts
-@views_bp.route("/<cat_name>/<alias>/")
-@views_bp.route("/<cat_name>/<alias>")
-@views_bp.route("/<cat_name>/")
-@views_bp.route("/<cat_name>")
-def posts(cat_name="", alias=""):
-    categoryes = Category.query.all()
-    category = Category.query.filter_by(alias=cat_name).first()
-    if category is None:
-        print(
-            "##### Категорiя '{category}' не знайдена #####".format(category=category)
-        )
-        return redirect(abort(404))
-
-    if alias == "":
-        articles = Post.query.filter_by(cat_id=category.id)
+@views_bp.route("/posts/<slug>")
+@views_bp.route("/posts/")
+@views_bp.route("/posts")
+def post(slug=""):
+    if slug == "":
+        posts = Post.query.all()
         return render_template(
             "/articles.html",
-            ARTICLES=articles,
-            CATEGORY=category,
-            CATEGORYES=categoryes,
+            POSTS=posts,
         )
 
-    article = Post.query.filter_by(alias=alias).first()
-    if article is None:
-        print("##### Публiкацiя '{alias}' не знайдена #####".format(alias=alias))
+    post = Post.query.filter_by(slug=slug).first()
+
+    if post is None:
         return redirect(abort(404))
 
-    return render_template("/article.html", ARTICLE=article, CATEGORYES=categoryes)
+    article = Post.query.filter_by(slug=slug).first()
+    if article is None:
+        return redirect(abort(404))
+
+    return render_template("/article.html", POST=post)
 
 
 # ============================================================ Search
