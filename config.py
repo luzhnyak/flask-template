@@ -16,7 +16,7 @@ class Config(BaseSettings):
 
     @property
     def ALLOWED_EXTENSIONS(self) -> set:
-        return set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+        return set(["txt", "pdf", "png", "jpg", "jpeg", "gif"])
 
     @property
     def IMAGES_FOLDER(self) -> str:
@@ -27,6 +27,12 @@ class Config(BaseSettings):
         return os.path.join(self.APP_FOLDER, self.IMAGES_FOLDER)
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
+
+    @property
+    def MENU_ITEMS(self):
+        return [
+            {"name": "Posts", "url": "/posts"},
+        ]
 
 
 config = Config()

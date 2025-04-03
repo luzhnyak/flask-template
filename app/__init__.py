@@ -40,7 +40,7 @@ def create_app():
     @app.context_processor
     def inject_constants():
         return {
-            "MENU_ITEMS": [],
+            "MENU_ITEMS": config.MENU_ITEMS,
         }
 
     app.register_blueprint(views_bp)
