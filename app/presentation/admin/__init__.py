@@ -1,7 +1,7 @@
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import Admin
 
-from app.infrastructure.database import db
+from app.infrastructure.database import Base, sync_session
 from app.infrastructure.models import Post, User, Category, Image
 from app.presentation.admin.views import MyAdminIndexView, PostsView
 
@@ -15,8 +15,8 @@ def init_admin(app):
     if not hasattr(app, "flask_admin_initialized"):
         admin.init_app(app)
 
-        admin.add_view(PostsView(Post, db.session))
-        admin.add_view(ModelView(Category, db.session))
-        admin.add_view(ModelView(Image, db.session))
+        admin.add_view(PostsView(Post, sync_session))
+        admin.add_view(ModelView(Category, sync_session))
+        admin.add_view(ModelView(Image, sync_session))
 
         app.flask_admin_initialized = True

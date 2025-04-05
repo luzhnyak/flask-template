@@ -1,8 +1,11 @@
-from flask import flash, redirect, url_for, session
 from functools import wraps
+from datetime import datetime
+from flask import flash, redirect, url_for, session
+from sqlalchemy import ForeignKey, Integer, String, DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 
-
-from app.infrastructure.database import db
+from app.infrastructure.database import Base
 
 
 def is_logged_in(f):
@@ -17,51 +20,55 @@ def is_logged_in(f):
     return wrap
 
 
-class BaseModel(db.Model):
+class BaseModel(Base):
     __abstract__ = True
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(
-        db.DateTime,
-        default=db.func.current_timestamp(),
-        onupdate=db.func.current_timestamp(),
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
 
 class Post(BaseModel):
     __tablename__ = "posts"
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String())
-    slug = db.Column(db.String())
-    content = db.Column(db.Text())
-    main_image = db.Column(db.String())
-    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(100))
+    slug: Mapped[str] = mapped_column(String(100))
+    content: Mapped[str]
+    main_image: Mapped[str]
+    category_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id"))
 
-    category = db.relationship("Category")
+    category: Mapped["Category"] = relationship("Category", back_populates="posts")
 
 
 class Category(BaseModel):
     __tablename__ = "categories"
-    id = db.Column(db.Integer, primary_key=True, unique=True)
-    name = db.Column(db.String())
-    slug = db.Column(db.String())
-    icon = db.Column(db.String())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    slug: Mapped[str] = mapped_column(String(100))
+    icon: Mapped[str] = mapped_column(String(100))
+
+    posts: Mapped[list["Post"]] = relationship("Post", back_populates="category")
 
 
 class Image(BaseModel):
     __tablename__ = "images"
-    id = db.Column(db.Integer, primary_key=True, unique=True)
-    name = db.Column(db.Unicode(64))
-    path = db.Column(db.Unicode(128))
-    type = db.Column(db.Unicode(4))
-    post_id = db.Column(db.Integer)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    path: Mapped[str] = mapped_column(String(100))
+    type: Mapped[str] = mapped_column(String(4))
+    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("posts.id"))
+
+    posts: Mapped[list["Post"]] = relationship("Post", back_populates="images")
 
 
 class User(BaseModel):
     __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True, unique=True)
-    name = db.Column(db.String())
-    email = db.Column(db.String(), unique=True)
-    password = db.Column(db.String())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    email: Mapped[str] = mapped_column(String(50))
+    password: Mapped[str] = mapped_column(String(50))
 
     @property
     def is_authenticated(self):

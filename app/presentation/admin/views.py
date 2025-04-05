@@ -6,7 +6,7 @@ from flask_admin import AdminIndexView
 from flask_admin import expose
 
 import app.utils.utilites as utilites
-from app.infrastructure.database import db
+from app.infrastructure.database import Base
 from app.infrastructure.models import Post, User, Category, Image
 
 # ==================================================== View Models Admin

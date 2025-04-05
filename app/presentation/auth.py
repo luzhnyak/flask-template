@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import current_user, login_user, logout_user
 
 import app.utils.utilites as utilites
-from app import db
+
 from app.infrastructure.models import Category, User
 from config import config
 
@@ -105,8 +105,8 @@ def loginfb():
                     user_social.get("email"),
                 )
                 user.fb_id = user_social.get("id")
-                db.session.add(user)
-                db.session.commit()
+                # db.session.add(user)
+                # db.session.commit()
                 login_user(user)
 
                 return redirect(url_for("index"))
@@ -207,8 +207,8 @@ def logingl():
                     user_social.get("email"),
                 )
                 user.google_id = user_social.get("id")
-                db.session.add(user)
-                db.session.commit()
+                # db.session.add(user)
+                # db.session.commit()
                 login_user(user)
 
                 return redirect(url_for("index"))

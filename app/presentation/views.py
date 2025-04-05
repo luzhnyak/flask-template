@@ -16,7 +16,7 @@ from werkzeug.utils import secure_filename
 from flask_login import current_user, login_user, logout_user
 
 import app.utils.utilites as utilites
-from app import db
+
 from app.infrastructure.models import Post, Category, User, Image
 from config import config
 
@@ -101,8 +101,8 @@ def upload_file(id=""):
             JSON["url"] = config.images_folder + path
 
             image = Image(filename, path, "", utilites.timeNow("u"), id)
-            db.session.add(image)
-            db.session.commit()
+            # db.session.add(image)
+            # db.session.commit()
 
     JSON = json.dumps(JSON, ensure_ascii=True, indent=None, sort_keys=False)
     return JSON, {"Content-Type": "text/json"}
