@@ -1,9 +1,11 @@
+import asyncio
 import requests
+from app.services.user import UserService
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import current_user, login_user, logout_user
 
 import app.utils.utilites as utilites
-
+from app.infrastructure.database import Base, async_engine, sync_session, async_session, get_session
 from app.infrastructure.models import Category, User
 from config import config
 
@@ -13,15 +15,13 @@ auth_bp = Blueprint("auth", __name__)
 # ================================================ User Login
 @auth_bp.route("/login", methods=["GET", "POST"])
 # @check_recaptcha
-def login():
-    categoryes = Category.query.all()
-    if request.method == "POST":
-        # Get Form Fields
+async def login():
+    user_servise = UserService(async_session())
+    if request.method == "POST":        
         email = request.form["email"]
-        password_candidate = request.form["password"]
+        password_candidate = request.form["password"]           
 
-        # Get user by username
-        user = User.query.filter_by(email=email).first()
+        user = await user_servise.get_user_by_email(email=email)
 
         if user is not None:
             # Compare Passwords
@@ -35,11 +35,9 @@ def login():
                 return render_template("login.html", error=error)
         else:
             error = "Користувач не знайдений"
-            return render_template(
-                "login.html", error=error, CATEGORYES=categoryes, CONFIG=config
-            )
+            return render_template("login.html", error=error, CONFIG=config)
 
-    return render_template("login.html", CATEGORYES=categoryes, CONFIG=config)
+    return render_template("login.html", CONFIG=config)
 
 
 # ===============================================================Login Facebook

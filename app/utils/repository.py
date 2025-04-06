@@ -54,13 +54,13 @@ class SQLAlchemyRepository(AbstractRepository):
         return result._mapping
 
     async def find_all(self, skip: int, limit: int):
-        stmt = select(self.model)
+        stmt = select(self.model)        
         res = await self.session.execute(stmt.offset(skip).limit(limit))
         return res.scalars().all()
 
     async def find_one(self, **filter_by):
         stmt = select(self.model).filter_by(**filter_by)
-        res = await self.session.execute(stmt)
+        res = await self.session.execute(stmt)        
         return res.scalar_one_or_none()
 
     async def delete_one(self, id: int) -> RowMapping:

@@ -60,7 +60,7 @@ class Image(BaseModel):
     type: Mapped[str] = mapped_column(String(4))
     post_id: Mapped[int] = mapped_column(Integer, ForeignKey("posts.id"))
 
-    posts: Mapped[list["Post"]] = relationship("Post", back_populates="images")
+    # posts: Mapped[list["Post"]] = relationship("Post", back_populates="images")
 
 
 class User(BaseModel):
@@ -68,22 +68,7 @@ class User(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(50))
-    password: Mapped[str] = mapped_column(String(50))
-
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_active(self):
-        return True
-
-    @property
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
-        return self.id
+    password: Mapped[str] = mapped_column(String(50))    
 
     def __repr__(self):
         return "<User ('%s')>" % (self.username)

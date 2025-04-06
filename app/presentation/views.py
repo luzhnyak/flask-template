@@ -2,6 +2,12 @@ import os
 import json
 import requests
 
+from sqlalchemy import insert, select, update, delete, RowMapping, func
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.infrastructure.database import get_session, async_session
+from app.services.posts import PostService
+from app.services.user import UserService
 from flask import (
     Blueprint,
     render_template,
@@ -20,6 +26,13 @@ import app.utils.utilites as utilites
 from app.infrastructure.models import Post, Category, User, Image
 from config import config
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def get_post_service() -> PostService: # type: ignore
+    async with async_session() as session:
+        yield PostService(session)
+
 views_bp = Blueprint("views", __name__)
 
 # @app.errorhandler(404)
@@ -29,6 +42,8 @@ views_bp = Blueprint("views", __name__)
 # 		return redirect(request.url_root[:-1] + redirect_url.redirect_url)
 # 	add_to_log404(request.path, request.referrer)
 # 	return render_template('404.html'), 404
+
+
 
 
 # ================================================ Home page
@@ -41,21 +56,16 @@ def index():
 @views_bp.route("/posts/<slug>")
 @views_bp.route("/posts/")
 @views_bp.route("/posts")
-def post(slug=""):
+async def post(slug=""):
+    user_service = PostService(async_session())    
+    
     if slug == "":
-        posts = Post.query.all()
-        return render_template(
-            "/articles.html",
-            POSTS=posts,
-        )
-
-    post = Post.query.filter_by(slug=slug).first()
+        posts = await user_service.get_posts()        
+        return render_template("/articles.html", POSTS=posts)    
+    
+    post = await user_service.get_post_by_slug(slug=slug)
 
     if post is None:
-        return redirect(abort(404))
-
-    article = Post.query.filter_by(slug=slug).first()
-    if article is None:
         return redirect(abort(404))
 
     return render_template("/article.html", POST=post)

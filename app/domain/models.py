@@ -1,5 +1,5 @@
 # app/domain/models.py
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 import re
 
@@ -8,43 +8,51 @@ class Post(BaseModel):
     id: int
     title: str
     slug: str
-    comtent: int
+    content: int
     created_at: datetime
-
-    @property
-    def desc(self):
-        text = self.textbody.replace("&nbsp;", " ").replace("\n", " ")
-        cleanr = re.compile("<.*?>")
-        return re.sub(cleanr, "", text)
-
-    # def add_hit(self):
-    #     if self.hits is not None:
-    #         self.hits += 1
-    #     else:
-    #         self.hits = 1
-    #     db.session.commit()
+    
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Category(BaseModel):
     id: int
     name: str
     slug: str
-    icon = str
-
-    created_at: datetime
+    icon: str   
+    
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Image(BaseModel):
     id: int
-    title: str
-    slug: str
-    comtent: int
-    created_at: datetime
+    name: str
+    path: str
+    type: int    
+    
+    model_config = ConfigDict(from_attributes=True)
 
 
 class User(BaseModel):
     id: int
-    title: str
-    slug: str
-    comtent: int
-    created_at: datetime
+    name: str
+    email: str
+    password: str    
+    
+    model_config = ConfigDict(from_attributes=True)
+    
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return self.id
+
+
