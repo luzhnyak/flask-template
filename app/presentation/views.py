@@ -28,22 +28,23 @@ from config import config
 
 from contextlib import asynccontextmanager
 
+
 @asynccontextmanager
-async def get_post_service() -> PostService: # type: ignore
+async def get_post_service() -> PostService:  # type: ignore
     async with async_session() as session:
         yield PostService(session)
 
+
 views_bp = Blueprint("views", __name__)
 
-# @app.errorhandler(404)
-# def page_not_fount(e):
-# 	redirect_url = Redirect.query.filter_by(url=request.path).first()
-# 	if redirect_url != None:
-# 		return redirect(request.url_root[:-1] + redirect_url.redirect_url)
-# 	add_to_log404(request.path, request.referrer)
-# 	return render_template('404.html'), 404
 
-
+@app.errorhandler(404)
+def page_not_fount(e):
+    redirect_url = Redirect.query.filter_by(url=request.path).first()
+    if redirect_url != None:
+        return redirect(request.url_root[:-1] + redirect_url.redirect_url)
+    add_to_log404(request.path, request.referrer)
+    return render_template("404.html"), 404
 
 
 # ================================================ Home page
@@ -57,12 +58,12 @@ def index():
 @views_bp.route("/posts/")
 @views_bp.route("/posts")
 async def post(slug=""):
-    user_service = PostService(async_session())    
-    
+    user_service = PostService(async_session())
+
     if slug == "":
-        posts = await user_service.get_posts()        
-        return render_template("/articles.html", POSTS=posts)    
-    
+        posts = await user_service.get_posts()
+        return render_template("/articles.html", POSTS=posts)
+
     post = await user_service.get_post_by_slug(slug=slug)
 
     if post is None:
