@@ -68,7 +68,4 @@ class User(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(50))
-    password: Mapped[str] = mapped_column(String(50))    
-
-    def __repr__(self):
-        return "<User ('%s')>" % (self.username)
+    password: Mapped[str] = mapped_column(String(50))

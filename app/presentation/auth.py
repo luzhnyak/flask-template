@@ -3,9 +3,16 @@ import requests
 from app.services.user import UserService
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import current_user, login_user, logout_user
+from flask import session as login_session
 
 import app.utils.utilites as utilites
-from app.infrastructure.database import Base, async_engine, sync_session, async_session, get_session
+from app.infrastructure.database import (
+    Base,
+    async_engine,
+    sync_session,
+    async_session,
+    get_session,
+)
 from app.infrastructure.models import Category, User
 from config import config
 
@@ -14,20 +21,19 @@ auth_bp = Blueprint("auth", __name__)
 
 # ================================================ User Login
 @auth_bp.route("/login", methods=["GET", "POST"])
-# @check_recaptcha
 async def login():
-    user_servise = UserService(async_session())
-    if request.method == "POST":        
+    if request.method == "POST":
         email = request.form["email"]
-        password_candidate = request.form["password"]           
+        password_candidate = request.form["password"]
 
-        user = await user_servise.get_user_by_email(email=email)
+        async with get_session() as session:
+            user_servise = UserService(session)
+            user = await user_servise.get_user_by_email(email=email)
 
         if user is not None:
-            # Compare Passwords
             if password_candidate == user.password:
-                flash("You are now logged in", "success")
-                login_user(user)
+
+                login_session["is_admin"] = True
                 return redirect("/admin")
 
             else:

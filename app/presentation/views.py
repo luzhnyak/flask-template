@@ -6,7 +6,7 @@ from sqlalchemy import insert, select, update, delete, RowMapping, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.database import get_session, async_session
-from app.services.posts import PostService
+from app.services.posts import PostService, get_post_service
 from app.services.user import UserService
 from flask import (
     Blueprint,
@@ -26,25 +26,17 @@ import app.utils.utilites as utilites
 from app.infrastructure.models import Post, Category, User, Image
 from config import config
 
-from contextlib import asynccontextmanager
-
-
-@asynccontextmanager
-async def get_post_service() -> PostService:  # type: ignore
-    async with async_session() as session:
-        yield PostService(session)
-
 
 views_bp = Blueprint("views", __name__)
 
 
-@app.errorhandler(404)
-def page_not_fount(e):
-    redirect_url = Redirect.query.filter_by(url=request.path).first()
-    if redirect_url != None:
-        return redirect(request.url_root[:-1] + redirect_url.redirect_url)
-    add_to_log404(request.path, request.referrer)
-    return render_template("404.html"), 404
+# @app.errorhandler(404)
+# def page_not_fount(e):
+#     redirect_url = Redirect.query.filter_by(url=request.path).first()
+#     if redirect_url != None:
+#         return redirect(request.url_root[:-1] + redirect_url.redirect_url)
+#     add_to_log404(request.path, request.referrer)
+#     return render_template("404.html"), 404
 
 
 # ================================================ Home page
@@ -58,16 +50,18 @@ def index():
 @views_bp.route("/posts/")
 @views_bp.route("/posts")
 async def post(slug=""):
-    user_service = PostService(async_session())
-
     if slug == "":
-        posts = await user_service.get_posts()
+        async with get_post_service() as user_service:
+            posts = await user_service.get_posts()
         return render_template("/articles.html", POSTS=posts)
 
-    post = await user_service.get_post_by_slug(slug=slug)
+    async with get_post_service() as user_service:
+        post = await user_service.get_post_by_slug(slug=slug)
 
     if post is None:
         return redirect(abort(404))
+
+    print("current_user", current_user)
 
     return render_template("/article.html", POST=post)
 

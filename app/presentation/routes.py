@@ -2,7 +2,7 @@
 from app.services.posts import PostService
 from flask import Blueprint, jsonify, request
 
-from app.infrastructure.repositories.repositories import PostRepository
+from app.infrastructure.repositories.post import PostRepository
 from app.infrastructure.database import db, get_session
 
 post_blueprint = Blueprint("posts", __name__)
@@ -17,12 +17,9 @@ def get_posts():
 
 @post_blueprint.route("/posts/<int:post_id>", methods=["GET"])
 async def get_post(post_id):
-    async for session in get_session():
-        service = PostService(session)
-        print("Session type:", type(session)) 
-        print("++++++++++++++++ before")
-        post = await service.get_post_by_id(id=1)
-        print("++++++++++++++++ after")    
+    async with get_session() as session:
+        user_service = PostService(session)
+        post = await user_service.get_post_by_slug(id=post_id)
     if post is None:
         return jsonify({"error": "Post not found"}), 404
     return jsonify(post.dict()), 200

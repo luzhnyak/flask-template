@@ -8,20 +8,6 @@
 <div class="panel-heading">Найпопулярніші пости</div> 
 <div class="panel-body">
 
-<nav class="">
-  <ul class="nav flex-column">
-    {% for POST in POSTS[0:10] %}   
-      <li class="nav-item">
-      <span>        
-        {{ POST.title }}                
-        <a class="nav-link" title="Edit" href="/admin/article/edit/?id={{ POST.id }}" >   
-        <i class="fas fa-edit"></i>          
-        </a>
-      </span>    
-      </li>           
-    {% endfor %}    
-  </ul>
-</nav> 
 
 
 </div>
