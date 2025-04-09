@@ -4,6 +4,9 @@ import flask_login as login
 from flask_admin import Admin
 from flask_admin import AdminIndexView
 from flask_admin import expose
+from flask_admin.contrib.sqla import ModelView
+from wtforms.fields import SelectField
+from app.infrastructure.database import Base, sync_session
 
 import app.utils.utilites as utilites
 from app.infrastructure.database import Base
@@ -36,6 +39,19 @@ class MyAdminIndexView(AdminIndexView):
         if not session.get("is_admin"):
             return redirect(url_for("login"))
         return super().index()
+
+
+class PostsView(ModelView):
+    form_columns = ["title", "slug", "content", "main_image", "category_id"]
+
+    def scaffold_form(self):
+        form_class = super().scaffold_form()
+        form_class.category_id = SelectField(
+            "Категорія",
+            choices=[(str(c.id), c.name) for c in sync_session().query(Category).all()],
+            coerce=int,
+        )
+        return form_class
 
 
 # class PostsView(ModelView):

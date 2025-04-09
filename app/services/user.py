@@ -21,6 +21,8 @@ class UserService:
 
     async def get_user_by_email(self, email: str) -> Optional[User]:
         user = await self.user_repo.find_one(email=email)
+        if not user:
+            return None
         return User.model_validate(user)
 
     async def create_user(self, title: str, slug: str, content: str) -> User:
