@@ -1,7 +1,6 @@
 from app.services.user import UserService
 from flask import Flask
 from flask_login import LoginManager
-import asyncio
 
 from config import config
 from app.infrastructure.database import Base, async_engine, sync_session
@@ -17,21 +16,22 @@ async def init_db():
         await conn.run_sync(Base.metadata.create_all)
         print("✅ Таблиці створено!")
 
+
 def create_app():
     app = Flask(__name__)
 
     app.secret_key = config.SECRET_KEY
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["FLASK_ADMIN_SWATCH"] = "cerulean"    
+    app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
 
     login_manager.init_app(app)
-    
+
     @login_manager.user_loader
     async def load_user(user_id):
         servise = UserService(sync_session)
         return await servise.get_user_by_id(user_id)
-    
-    init_admin(app)  # 📌 Підключаємо Flask-Admin
+
+    init_admin(app)
 
     @app.context_processor
     def inject_constants():
@@ -43,5 +43,3 @@ def create_app():
     app.register_blueprint(auth_bp)
 
     return app
-
-

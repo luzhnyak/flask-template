@@ -1,25 +1,16 @@
 import os
 import json
-import requests
 
-from sqlalchemy import insert, select, update, delete, RowMapping, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.services.posts import get_post_service
 
-from app.infrastructure.database import get_session, async_session
-from app.services.posts import PostService, get_post_service
-from app.services.user import UserService
 from flask import (
     Blueprint,
     render_template,
     redirect,
     abort,
-    url_for,
     request,
-    flash,
-    send_from_directory,
 )
 from werkzeug.utils import secure_filename
-from flask_login import current_user, login_user, logout_user
 
 import app.utils.utilites as utilites
 
@@ -60,8 +51,6 @@ async def post(slug=""):
 
     if post is None:
         return redirect(abort(404))
-
-    print("current_user", current_user)
 
     return render_template("/article.html", POST=post)
 
