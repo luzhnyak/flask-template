@@ -2,7 +2,7 @@ import asyncio
 import requests
 from app.services.user import UserService
 from flask import Blueprint, render_template, redirect, url_for, request, flash
-from flask_login import current_user, login_user, logout_user
+
 from flask import session as login_session
 
 import app.utils.utilites as utilites
@@ -93,7 +93,7 @@ def loginfb():
         user = User.query.filter_by(fb_id=user_social.get("id")).first()
 
         if user is not None:
-            login_user(user)
+            # login_user(user)
 
             # flash('Ви ввійшли на сайт', 'success')
             return redirect(url_for("index"))
@@ -111,7 +111,7 @@ def loginfb():
                 user.fb_id = user_social.get("id")
                 # db.session.add(user)
                 # db.session.commit()
-                login_user(user)
+                # login_user(user)
 
                 return redirect(url_for("index"))
 
@@ -119,7 +119,7 @@ def loginfb():
                 # error = 'Оновлено користувача'
 
                 user.fb_id = user_social.get("id")
-                login_user(user)
+                # login_user(user)
                 return redirect(url_for("index"))
 
     return render_template("login.html")
@@ -136,7 +136,7 @@ def loginfb():
 # ============================================================ User Logout
 @auth_bp.route("/logout")
 def logout():
-    logout_user()
+    # logout_user()
     flash("You are now logged out", "success")
     return redirect(url_for("index"))
 
@@ -197,7 +197,7 @@ def logingl():
 
         if user is not None:
 
-            login_user(user)
+            # login_user(user)
             return redirect(url_for("index"))
 
         else:
@@ -213,14 +213,14 @@ def logingl():
                 user.google_id = user_social.get("id")
                 # db.session.add(user)
                 # db.session.commit()
-                login_user(user)
+                # login_user(user)
 
                 return redirect(url_for("index"))
             else:
                 # error = 'Оновлено користувача'
 
                 user.google_id = user_social.get("id")
-                login_user(user)
+                # login_user(user)
                 return redirect(url_for("index"))
 
     return render_template("login.html")

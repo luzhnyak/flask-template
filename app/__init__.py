@@ -1,14 +1,11 @@
 from app.services.user import UserService
 from flask import Flask
-from flask_login import LoginManager
 
 from config import config
 from app.infrastructure.database import Base, async_engine, sync_session
 from app.presentation.views import views_bp
 from app.presentation.auth import auth_bp
 from app.presentation.admin import init_admin
-
-login_manager = LoginManager()
 
 
 async def init_db():
@@ -23,13 +20,6 @@ def create_app():
     app.secret_key = config.SECRET_KEY
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
-
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    async def load_user(user_id):
-        servise = UserService(sync_session)
-        return await servise.get_user_by_id(user_id)
 
     init_admin(app)
 

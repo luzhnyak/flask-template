@@ -1,16 +1,15 @@
 from flask_admin.contrib.sqla import ModelView
 from flask import redirect, session, url_for, request
-import flask_login as login
-from flask_admin import Admin
+
+
 from flask_admin import AdminIndexView
 from flask_admin import expose
 from flask_admin.contrib.sqla import ModelView
 from wtforms.fields import SelectField
-from app.infrastructure.database import Base, sync_session
+from app.infrastructure.database import sync_session
 
-import app.utils.utilites as utilites
-from app.infrastructure.database import Base
-from app.infrastructure.models import Post, User, Category, Image
+
+from app.infrastructure.models import Category
 
 # ==================================================== View Models Admin
 # Create customized model view class
