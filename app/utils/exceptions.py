@@ -43,9 +43,7 @@ class ValidationException(APIException):
 
 class DatabaseException(APIException):
     def __init__(self, detail="Database error"):
-        super().__init__(
-            f"Database error: {detail}", status.BAD_REQUEST
-        )  # Виправлено з 500 на 400
+        super().__init__(f"Database error: {detail}", status.INTERNAL_SERVER_ERROR)
 
 
 class ServerException(APIException):
