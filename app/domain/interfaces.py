@@ -1,4 +1,3 @@
-# app/domain/interfaces.py
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from app.domain.models import Post

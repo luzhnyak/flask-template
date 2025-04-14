@@ -1,4 +1,3 @@
-# app/presentation/routes.py
 from app.services.posts import PostService
 from flask import Blueprint, jsonify, request
 

@@ -12,7 +12,6 @@ from app.infrastructure.database import sync_session
 from app.infrastructure.models import Category
 
 # ==================================================== View Models Admin
-# Create customized model view class
 
 
 class MyModelView(ModelView):
@@ -24,7 +23,6 @@ class MyModelView(ModelView):
         return redirect(url_for("login"))
 
 
-# Create customized index view class that handles login & registration
 class MyAdminIndexView(AdminIndexView):
 
     def is_accessible(self):
