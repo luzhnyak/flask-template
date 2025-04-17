@@ -64,7 +64,9 @@ def search():
 
 # ============================================================ Files
 @views_bp.route("/admin/check-file/<id>", methods=["GET", "POST"])
-def check_file(id=""):
+async def check_file(id=""):
+    async with get_image_service() as image_service:
+        files = await image_service.get_images_by_post_id(id)
     return render_template("file-browse.html", files=Image.query.all(), ARTICLE_ID=id)
 
 

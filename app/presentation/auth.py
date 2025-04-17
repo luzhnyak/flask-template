@@ -1,19 +1,14 @@
-import asyncio
 import requests
 from app.services.user import UserService
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 
 from flask import session as login_session
 
-import app.utils.utilites as utilites
+
 from app.infrastructure.database import (
-    Base,
-    async_engine,
-    sync_session,
-    async_session,
     get_session,
 )
-from app.infrastructure.models import Category, User
+from app.infrastructure.models import User
 from config import config
 
 auth_bp = Blueprint("auth", __name__)
@@ -48,9 +43,7 @@ async def login():
 
 # ===============================================================Login Facebook
 def oauthFacebook(code):
-
     url = "https://graph.facebook.com/oauth/access_token"
-
     params = {
         "client_id": config.FB_CLIENT_ID,
         "client_secret": config.FB_SECRET,
@@ -61,7 +54,7 @@ def oauthFacebook(code):
     response = requests.get(url, params=params)
     url = "https://graph.facebook.com/me"
 
-    # print(response.json().get("access_token"))
+    print(response.json().get("access_token"))
     params = {
         "access_token": response.json().get("access_token"),
         "fields": "id,name,email,link",
@@ -94,13 +87,11 @@ def loginfb():
 
         if user is not None:
             # login_user(user)
-
             # flash('Ви ввійшли на сайт', 'success')
             return redirect(url_for("index"))
 
         else:
             user = User.query.filter_by(email=user_social.get("email")).first()
-
             if user is None:
                 # Створюємо нового користувача
                 user = User(
@@ -117,7 +108,6 @@ def loginfb():
 
             else:
                 # error = 'Оновлено користувача'
-
                 user.fb_id = user_social.get("id")
                 # login_user(user)
                 return redirect(url_for("index"))

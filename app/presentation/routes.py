@@ -2,7 +2,7 @@ from app.services.posts import PostService
 from flask import Blueprint, jsonify, request
 
 from app.infrastructure.repositories.post import PostRepository
-from app.infrastructure.database import db, get_session
+from app.infrastructure.database import get_session
 
 post_blueprint = Blueprint("posts", __name__)
 post_service = PostService(PostRepository())
