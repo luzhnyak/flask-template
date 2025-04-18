@@ -1,4 +1,4 @@
-from app.services.posts import PostService
+from app.services.post import PostService
 from flask import Blueprint, jsonify, request
 
 from app.infrastructure.repositories.post import PostRepository

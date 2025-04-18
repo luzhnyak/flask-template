@@ -1,7 +1,8 @@
 import os
 import json
 
-from app.services.posts import get_post_service
+from app.services.image import get_image_service
+from app.services.post import get_post_service
 
 from flask import (
     Blueprint,
@@ -67,11 +68,11 @@ def search():
 async def check_file(id=""):
     async with get_image_service() as image_service:
         files = await image_service.get_images_by_post_id(id)
-    return render_template("file-browse.html", files=Image.query.all(), ARTICLE_ID=id)
+    return render_template("file-browse.html", files=files, ARTICLE_ID=id)
 
 
 @views_bp.route("/admin/upload-file/<id>", methods=["GET", "POST"])
-def upload_file(id=""):
+async def upload_file(id=""):
     JSON = {}
     if request.method == "POST":
         files = request.files.getlist("upload")
@@ -96,9 +97,8 @@ def upload_file(id=""):
             JSON["uploaded"] = 1
             JSON["url"] = config.images_folder + path
 
-            image = Image(filename, path, "", utilites.timeNow("u"), id)
-            # db.session.add(image)
-            # db.session.commit()
+            async with get_image_service() as image_service:
+                await image_service.create_image(filename, path, "")
 
     JSON = json.dumps(JSON, ensure_ascii=True, indent=None, sort_keys=False)
     return JSON, {"Content-Type": "text/json"}
