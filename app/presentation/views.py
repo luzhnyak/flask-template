@@ -31,13 +31,11 @@ views_bp = Blueprint("views", __name__)
 #     return render_template("404.html"), 404
 
 
-# ================================================ Home page
 @views_bp.route("/")
 def index():
     return render_template("index.html")
 
 
-# ================================================ Posts
 @views_bp.route("/posts/<slug>")
 @views_bp.route("/posts/")
 @views_bp.route("/posts")
@@ -56,14 +54,12 @@ async def post(slug=""):
     return render_template("/article.html", POST=post)
 
 
-# ============================================================ Search
 @views_bp.route("/search", methods=["GET", "POST"])
 @views_bp.route("/search/", methods=["GET", "POST"])
 def search():
     return render_template("/search.html")
 
 
-# ============================================================ Files
 @views_bp.route("/admin/check-file/<id>", methods=["GET", "POST"])
 async def check_file(id=""):
     async with get_image_service() as image_service:

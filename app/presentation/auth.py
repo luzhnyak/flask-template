@@ -14,7 +14,6 @@ from config import config
 auth_bp = Blueprint("auth", __name__)
 
 
-# ================================================ User Login
 @auth_bp.route("/login", methods=["GET", "POST"])
 async def login():
     if request.method == "POST":
