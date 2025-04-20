@@ -64,7 +64,7 @@ def oauthFacebook(code):
 
 
 @auth_bp.route("/loginfb", methods=["GET", "POST"])
-def loginfb():
+async def loginfb():
 
     if "code" not in request.args:
         url = (
@@ -90,7 +90,11 @@ def loginfb():
             return redirect(url_for("index"))
 
         else:
-            user = User.query.filter_by(email=user_social.get("email")).first()
+            async with get_session() as session:
+                user_servise = UserService(session)
+                user = await user_servise.get_user_by_email(
+                    email=user_social.get("email")
+                )
             if user is None:
                 # Створюємо нового користувача
                 user = User(
