@@ -1,8 +1,8 @@
 from app.services.user import UserService
-from flask import Flask
+from flask import Flask, g
 
 from config import config
-from app.infrastructure.database import Base, async_engine, sync_session
+from app.infrastructure.database import Async_session, Base, async_engine, sync_session
 from app.presentation.views import views_bp
 from app.presentation.auth import auth_bp
 from app.presentation.admin import init_admin
@@ -22,6 +22,14 @@ def create_app():
     app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
 
     init_admin(app)
+
+    @app.before_request
+    def create_session():
+        g.db = Async_session()
+
+    @app.teardown_request
+    def remove_session(exception=None):
+        Async_session.remove()
 
     @app.context_processor
     def inject_constants():

@@ -2,14 +2,20 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from app.domain.models import Post
+from app.infrastructure.repositories.category import CategoryRepository
 from app.infrastructure.repositories.post import PostRepository
 from app.infrastructure.database import async_session
 
 
 class PostService:
 
-    def __init__(self, db: AsyncSession):
-        self.post_repo = PostRepository(db)
+    def __init__(
+        self,
+        post_repo: PostRepository,
+        category_repo: CategoryRepository,
+    ):
+        self.post_repo = post_repo
+        self.category_repo = category_repo
 
     async def get_posts(self) -> List[Post]:
         return await self.post_repo.find_all(skip=0, limit=10)

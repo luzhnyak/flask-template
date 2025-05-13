@@ -1,8 +1,10 @@
 import os
 import json
 
+from app.factories.post_service_factory import get_post_service
 from app.services.image import get_image_service
-from app.services.post import get_post_service
+
+# from app.services.post import get_post_service
 
 from flask import (
     Blueprint,
@@ -40,13 +42,13 @@ def index():
 @views_bp.route("/posts/")
 @views_bp.route("/posts")
 async def post(slug=""):
+    post_service = get_post_service()
     if slug == "":
-        async with get_post_service() as user_service:
-            posts = await user_service.get_posts()
+
+        posts = await post_service.get_posts()
         return render_template("/articles.html", POSTS=posts)
 
-    async with get_post_service() as user_service:
-        post = await user_service.get_post_by_slug(slug=slug)
+    post = await post_service.get_post_by_slug(slug=slug)
 
     if post is None:
         return redirect(abort(404))
