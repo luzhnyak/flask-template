@@ -1,13 +1,10 @@
 import requests
-from app.services.user import UserService
+from app.factories.user_service_factory import get_user_service
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 
 from flask import session as login_session
 
 
-from app.infrastructure.database import (
-    get_session,
-)
 from app.infrastructure.models import User
 from config import config
 
@@ -16,13 +13,12 @@ auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 async def login():
+    user_servise = get_user_service()
     if request.method == "POST":
         email = request.form["email"]
         password_candidate = request.form["password"]
 
-        async with get_session() as session:
-            user_servise = UserService(session)
-            user = await user_servise.get_user_by_email(email=email)
+        user = await user_servise.get_user_by_email(email=email)
 
         if user is not None:
             if password_candidate == user.password:
@@ -65,7 +61,7 @@ def oauthFacebook(code):
 
 @auth_bp.route("/loginfb", methods=["GET", "POST"])
 async def loginfb():
-
+    user_servise = get_user_service()
     if "code" not in request.args:
         url = (
             "https://www.facebook.com/v3.0/dialog/oauth?client_id="
@@ -82,7 +78,7 @@ async def loginfb():
         if "error" in user_social:
             return redirect(url_for("login"))
 
-        user = User.query.filter_by(fb_id=user_social.get("id")).first()
+        user = await user_servise.get_user_by_email(email=user_social.get("email"))
 
         if user is not None:
             # login_user(user)
@@ -90,11 +86,7 @@ async def loginfb():
             return redirect(url_for("index"))
 
         else:
-            async with get_session() as session:
-                user_servise = UserService(session)
-                user = await user_servise.get_user_by_email(
-                    email=user_social.get("email")
-                )
+            user = await user_servise.get_user_by_email(email=user_social.get("email"))
             if user is None:
                 # Створюємо нового користувача
                 user = User(
@@ -102,6 +94,7 @@ async def loginfb():
                     user_social.get("email"),
                     user_social.get("email"),
                 )
+
                 user.fb_id = user_social.get("id")
                 # db.session.add(user)
                 # db.session.commit()
@@ -172,7 +165,7 @@ def oauthGoogle(code):
 
 @auth_bp.route("/logingl", methods=["GET", "POST"])
 def logingl():
-
+    user_servise = get_user_service()
     if "code" not in request.args:
         return redirect(
             f"https://accounts.google.com/o/oauth2/auth?redirect_uri=https://{config.DOMEN}/logingl&response_type=code&client_id="
@@ -186,7 +179,7 @@ def logingl():
         if "error" in user_social:
             return redirect(url_for("login"))
 
-        user = User.query.filter_by(google_id=user_social.get("id")).first()
+        user = user_servise.get_user_by_email(email=user_social.get("email"))
 
         if user is not None:
 
@@ -194,7 +187,7 @@ def logingl():
             return redirect(url_for("index"))
 
         else:
-            user = User.query.filter_by(email=user_social.get("email")).first()
+            user = user_servise.get_user_by_email(email=user_social.get("email"))
             if user is None:
                 # error = 'Створено нового користувача'
 
