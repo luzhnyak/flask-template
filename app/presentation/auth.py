@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask import session as login_session
 
 
-from app.infrastructure.models import User
+from app.infrastructure.index import User
 from config import config
 
 auth_bp = Blueprint("auth", __name__)

@@ -1,4 +1,4 @@
-from app.infrastructure.models import User
+from app.infrastructure.index import User
 from app.utils.repository import SQLAlchemyRepository
 
 

@@ -17,7 +17,7 @@ from werkzeug.utils import secure_filename
 
 import app.utils.utilites as utilites
 
-from app.infrastructure.models import Post, Category, User, Image
+from app.infrastructure.index import Post, Category, User, Image
 from config import config
 
 

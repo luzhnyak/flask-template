@@ -9,7 +9,7 @@ from wtforms.fields import SelectField
 from app.infrastructure.database import sync_session
 
 
-from app.infrastructure.models import Category
+from app.infrastructure.index import Category
 
 # ==================================================== View Models Admin
 

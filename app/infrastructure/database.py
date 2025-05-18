@@ -1,6 +1,5 @@
 from config import config
-from contextlib import asynccontextmanager
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import NullPool, create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, scoped_session
 
@@ -16,15 +15,3 @@ Async_session = scoped_session(async_session)
 
 class Base(DeclarativeBase):
     pass
-
-
-@asynccontextmanager
-async def get_session():
-    try:
-        async with async_session() as session:
-            yield session
-    except:
-        await session.rollback()
-        raise
-    finally:
-        await session.close()

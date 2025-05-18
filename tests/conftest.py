@@ -1,6 +1,6 @@
 import pytest
 from app import create_app
-from app.infrastructure.models import Users
+from app.infrastructure.index import Users
 from app.infrastructure.database import db
 
 
