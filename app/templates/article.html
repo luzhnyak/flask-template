@@ -1,29 +1,28 @@
 {% extends "base.html" %}	
 
 {% block title %}
-	{% if TITLE %}<title>{{ TITLE }}</title>{% else %}<title>{{ ARTICLE.title }} - Flask - start</title>{% endif %}
+    {% if TITLE %}<title>{{ TITLE }}</title>{% else %}<title>{{ POST.title }} - Flask - start</title>{% endif %}
 {% endblock %}
 
 {% block metatags %}  	
-	<meta name="description" content="{{ ARTICLE.desc[0:200]|safe }}" />
-	<meta name="keywords" content="python, it, windows, linux, hardware, software, flask" />
-	<link rel="canonical" href="" />    
+    <meta name="description" content="{{ POST.title|safe }}" />
+    <meta name="keywords" content="python, it, windows, linux, hardware, software, flask" />
+    <link rel="canonical" href="" />    
 {% endblock %}
 
 {% block body %}
-<article class="article-content">				
-	<div class="container">	
-		<h1>{{ ARTICLE.title }}</h1>
-		<nav aria-label="breadcrumb">
-			<ol class="breadcrumb">
-			  	<li class="breadcrumb-item"><a href="/">Головна</a> <span class="divider"></span></li> 				  	
-	    		<li class="breadcrumb-item"><a href="/{{ ARTICLE.category.alias }}/">{{ ARTICLE.category.name }}</a> <span class="divider"></span></li>	    		
-			  	<li class="breadcrumb-item active" aria-current="page">{{ ARTICLE.title }}</li>
-			</ol>
-		</nav>
-			{{ ARTICLE.textbody.replace("<pre>","<pre class='prettyprint linenums lang-py'>")|safe }}					
-	</div>
-</article>	
+<article class="article-content">
+    <div class="container">	
+        <h1>{{ POST.title }}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="/">Головна</a><span class="divider"></span></li>
+                  <li class="breadcrumb-item active" aria-current="page">{{ POST.title }}</li>
+            </ol>
+        </nav>
+            {{ POST.content|safe }}
+    </div>
+</article>
 
 {% endblock %}
 
