@@ -1,89 +1,120 @@
+from typing import ClassVar
+
+from flask import redirect, request, url_for
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from flask import redirect, url_for, request
-import flask_login as login
-from flask_admin import Admin
-from flask_admin import AdminIndexView
-from flask_admin import expose
+from flask_admin.theme import Bootstrap4Theme
+from flask_login import current_user
+from flask_wtf import FlaskForm
+from sqlalchemy.orm import joinedload
+from wtforms.validators import DataRequired, ValidationError
 
-import utilites
-from app import db, app
-from models import Article, Users, Category, Images
+from extensions import db
+from models import Article, Category, Images
+from utils import transliterate
 
 
-# ==================================================== View Models Admin
-# Create customized model view class
-class MyModelView(ModelView):
-
+class AdminAccess:
     def is_accessible(self):
-        return login.current_user.is_authenticated
+        return current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):
-        # redirect to login page if user doesn't have access
-        return redirect(url_for("login", next=request.url))
+        return redirect(url_for("main.login", next=request.path))
 
 
-# Create customized index view class that handles login & registration
-class MyAdminIndexView(AdminIndexView):
+class MyModelView(AdminAccess, ModelView):
+    # Use Flask-WTF's token format for both model and action forms.
+    form_base_class = FlaskForm
+    page_size = 20
 
-    def is_accessible(self):
-        return login.current_user.is_authenticated
 
-    def inaccessible_callback(self, name, **kwargs):
-        # redirect to login page if user doesn't have access
-        return redirect(url_for("login", next=request.url))
-
-    @expose("/", methods=["GET", "POST"])
+class MyAdminIndexView(AdminAccess, AdminIndexView):
+    @expose("/")
     def index(self):
-        articles = Article.query
-        return self.render(
-            "admin/index.html", ARTICLES=articles, Article=Article, db=db
-        )
+        articles = db.select(Article).options(joinedload(Article.category))
+        popular = db.session.scalars(
+            articles.order_by(Article.hits.desc(), Article.id.desc()).limit(10)
+        ).all()
+        recent = db.session.scalars(articles.order_by(Article.id.desc()).limit(10)).all()
+        return self.render("admin/index.html", popular=popular, recent=recent)
 
 
-class ArticlesView(ModelView):
-
+class ArticlesView(MyModelView):
     edit_template = "admin/edit_article.html"
-    create_template = "admin/edit_article.html"
-    # page_size = 50  # the number of entries to display on the list view
-    column_exclude_list = ["textbody"]
-    form_widget_args = {"textbody": {"rows": 25, "class": "form-control wysiwyg"}}
+    create_template = "admin/create_article.html"
+    column_exclude_list = ("textbody",)
+    column_searchable_list = ("title",)
+    column_default_sort = ("id", True)
+    form_columns = ("category", "title", "alias", "textbody", "main_image")
+    form_args: ClassVar[dict] = {
+        "title": {"validators": [DataRequired()]},
+        "category": {"validators": [DataRequired()]},
+    }
+    form_widget_args: ClassVar[dict] = {"textbody": {"rows": 25}}
 
-    def _change_alias(self, _form):
-        try:
-            if _form.alias.data is None:
-                _form.alias.data = utilites.transliterate(_form.title.data)
-            else:
-                _form.alias.data = utilites.transliterate(_form.alias.data)
-
-        except Exception as ex:
-            print(ex)
-
-        return _form
-
-    def edit_form(self, obj=None):
-        return self._change_alias(super(ArticlesView, self).edit_form(obj))
-
-    def create_form(self, obj=None):
-        return self._change_alias(super(ArticlesView, self).create_form(obj))
-
-
-# Initialize flask-login
-def init_login():
-    login_manager = login.LoginManager()
-    login_manager.init_app(app)
-
-    # Create user loader function
-    @login_manager.user_loader
-    def load_user(user_id):
-        return db.session.query(Users).get(user_id)
+    def on_model_change(self, form, model, is_created):
+        model.alias = transliterate(model.alias or model.title)
+        if not model.alias:
+            raise ValidationError("Enter a valid alias or title.")
+        with db.session.no_autoflush:
+            duplicate = db.session.scalar(
+                db.select(Article.id).where(
+                    Article.alias == model.alias,
+                    Article.cat_id == model.category.id,
+                    Article.id != model.id if model.id is not None else True,
+                )
+            )
+        if duplicate is not None:
+            raise ValidationError("This category already contains an article with that alias.")
 
 
-# Initialize flask-login
-init_login()
+class CategoriesView(MyModelView):
+    form_args: ClassVar[dict] = {"name": {"validators": [DataRequired()]}}
+
+    def on_model_change(self, form, model, is_created):
+        model.alias = transliterate(model.alias or model.name)
+        if not model.alias or model.alias in {
+            "admin",
+            "login",
+            "logout",
+            "search",
+            "static",
+            "media",
+            "favicon-ico",
+        }:
+            raise ValidationError("Choose a non-reserved category alias.")
+        with db.session.no_autoflush:
+            duplicate = db.session.scalar(
+                db.select(Category.id).where(
+                    Category.alias == model.alias,
+                    Category.id != model.id if model.id is not None else True,
+                )
+            )
+        if duplicate is not None:
+            raise ValidationError("A category with this alias already exists.")
+
+    def on_model_delete(self, model):
+        if (
+            db.session.scalar(db.select(Article.id).where(Article.cat_id == model.id).limit(1))
+            is not None
+        ):
+            raise ValidationError("Move or delete this category's articles first.")
 
 
-# admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
-admin = Admin(app, name="Admin Panel", index_view=MyAdminIndexView())
-admin.add_view(ArticlesView(Article, db.session))
-admin.add_view(ModelView(Category, db.session))
-admin.add_view(ModelView(Images, db.session))
+class ImagesView(MyModelView):
+    # File paths are created only by the validated upload endpoint.
+    can_create = False
+    can_edit = False
+    can_delete = False
+
+
+def init_admin(app):
+    admin = Admin(
+        app,
+        name="Admin Panel",
+        index_view=MyAdminIndexView(),
+        theme=Bootstrap4Theme(swatch="cerulean"),
+    )
+    admin.add_view(ArticlesView(Article, db))
+    admin.add_view(CategoriesView(Category, db))
+    admin.add_view(ImagesView(Images, db))

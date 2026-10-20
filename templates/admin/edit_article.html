@@ -1,8 +1,5 @@
 {% extends 'admin/model/edit.html' %}
-
 {% block tail %}
-
-{{ super() }}
-<script src="//cdn.ckeditor.com/4.13.1/full/ckeditor.js"></script>  
-<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+  {{ super() }}
+  {% include 'admin/_article_scripts.html' %}
 {% endblock %}
