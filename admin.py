@@ -19,7 +19,7 @@ class MyModelView(ModelView):
 
     def inaccessible_callback(self, name, **kwargs):
         # redirect to login page if user doesn't have access
-        return redirect(url_for('login', next=request.url))
+        return redirect(url_for("login", next=request.url))
 
 
 # Create customized index view class that handles login & registration
@@ -30,26 +30,23 @@ class MyAdminIndexView(AdminIndexView):
 
     def inaccessible_callback(self, name, **kwargs):
         # redirect to login page if user doesn't have access
-        return redirect(url_for('login', next=request.url))
+        return redirect(url_for("login", next=request.url))
 
-    @expose('/', methods=['GET', 'POST'])
+    @expose("/", methods=["GET", "POST"])
     def index(self):
         articles = Article.query
-        return self.render('admin/index.html', ARTICLES=articles, Article=Article, db=db)
+        return self.render(
+            "admin/index.html", ARTICLES=articles, Article=Article, db=db
+        )
 
 
 class ArticlesView(ModelView):
 
-    edit_template = 'admin/edit_article.html'
-    create_template = 'admin/edit_article.html'
+    edit_template = "admin/edit_article.html"
+    create_template = "admin/edit_article.html"
     # page_size = 50  # the number of entries to display on the list view
-    column_exclude_list = ['textbody']
-    form_widget_args = {
-        'textbody': {
-            'rows': 25,
-            'class': 'form-control wysiwyg'
-        }
-    }
+    column_exclude_list = ["textbody"]
+    form_widget_args = {"textbody": {"rows": 25, "class": "form-control wysiwyg"}}
 
     def _change_alias(self, _form):
         try:
@@ -64,14 +61,10 @@ class ArticlesView(ModelView):
         return _form
 
     def edit_form(self, obj=None):
-        return self._change_alias(
-            super(ArticlesView, self).edit_form(obj)
-        )
+        return self._change_alias(super(ArticlesView, self).edit_form(obj))
 
     def create_form(self, obj=None):
-        return self._change_alias(
-            super(ArticlesView, self).create_form(obj)
-        )
+        return self._change_alias(super(ArticlesView, self).create_form(obj))
 
 
 # Initialize flask-login
@@ -90,8 +83,7 @@ init_login()
 
 
 # admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
-admin = Admin(app, name='Admin Panel',
-              index_view=MyAdminIndexView(), template_mode='bootstrap3')
+admin = Admin(app, name="Admin Panel", index_view=MyAdminIndexView())
 admin.add_view(ArticlesView(Article, db.session))
 admin.add_view(ModelView(Category, db.session))
 admin.add_view(ModelView(Images, db.session))
