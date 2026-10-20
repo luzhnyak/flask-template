@@ -1,10 +1,6 @@
-import asyncio
+from app import app
+import views
+import admin
+from config import Config
 
-from app import create_app, init_db
-
-app = create_app()
-
-if __name__ == "__main__":
-    asyncio.run(init_db())
-
-    app.run(port=int("5000"), debug=True)
+app.run(port=int("5000"), debug=True)
