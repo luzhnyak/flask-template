@@ -1,49 +1,32 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <style>
-            .item {
-                float: left;
-                width: 150px;
-                height: 150px;
-                margin: 5px;
-                cursor: pointer;
-                background: no-repeat center;
-                background-size: cover;
-            }
-            .item:hover {
-                box-shadow: 0 0 5px 0 red;
-            }
-        </style>
-    </head>
-    <body>
-        {% for item in files %}
-
-            <div class="item"
-                 data-url="{{ '/static/img' + item.path }}"
-                 style="background-image: url('{{ '/static/img' + item.path }}') "></div>
-
-        {% endfor %}
-
-        <script>
-            function getUrlParam( paramName ) {
-                var reParam = new RegExp( '(?:[\?&]|&)' + paramName + '=([^&]+)', 'i' );
-                var match = window.location.search.match( reParam );
-
-                return ( match && match.length > 1 ) ? match[1] : null;
-            }
-
-            document.addEventListener('click', function (event) {
-                var element = event.target;
-                if (element.classList.contains('item') && window.opener) {
-                    var funcNum = getUrlParam( 'CKEditorFuncNum' );
-                    var fileUrl = element.getAttribute('data-url');                                    
-                    
-                    window.opener.main_image.value=fileUrl;
-                    window.opener.CKEDITOR.tools.callFunction( funcNum, fileUrl );
-                    window.close();
-                }
-            });
-        </script>
-    </body>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Зображення</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    .files { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .item { border: 1px solid #aaa; background: #fff; cursor: pointer; padding: .5rem; width: 160px; overflow-wrap: anywhere; }
+    .item img { width: 140px; height: 120px; object-fit: contain; }
+  </style>
+</head>
+<body>
+  <h1>Виберіть зображення</h1>
+  <div class="files">
+  {% for item in files %}
+    {% set image_url = url_for('static', filename='img' ~ item.path) if item.path and item.path.startswith('/') else url_for('main.media', filename=item.path or '') %}
+    <button type="button" class="item" data-url="{{ image_url }}"><img src="{{ image_url }}" alt="{{ item.name }}" loading="lazy"><br>{{ item.name }}</button>
+  {% else %}<p>Поки немає зображень.</p>{% endfor %}
+  </div>
+  <script>
+    document.addEventListener('click', (event) => {
+      const item = event.target.closest('.item');
+      if (!item || !window.opener) return;
+      const target = new URLSearchParams(window.location.search).get('target');
+      window.opener.postMessage({type: 'media-selected', url: item.dataset.url, target}, window.location.origin);
+      window.close();
+    });
+  </script>
+</body>
 </html>

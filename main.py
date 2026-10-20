@@ -1,6 +1,6 @@
-from app import app
-import views
-import admin
-from config import Config
+from app import create_app
 
-app.run(port=int("5000"), debug=True)
+app = create_app()
+
+if __name__ == "__main__":
+    app.run()

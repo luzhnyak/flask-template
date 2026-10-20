@@ -24,7 +24,7 @@
 		<ul>
 		{% for ARTICLE in ARTICLES %}
 			<li>
-				<a href="/{{ ARTICLE.category.alias }}/{{ ARTICLE.alias }}" >
+				<a href="{{ url_for('main.posts', cat_name=ARTICLE.category.alias, alias=ARTICLE.alias) }}" >
 						<span><p class="">{{ ARTICLE.title }}</p></span>
 				</a>
 			</li>

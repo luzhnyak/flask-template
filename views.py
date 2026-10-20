@@ -1,164 +1,179 @@
-import os
-import json
-import requests
+import warnings
+from datetime import UTC, datetime
+from pathlib import Path
+from uuid import uuid4
 
 from flask import (
-    render_template,
-    redirect,
+    Blueprint,
     abort,
-    url_for,
-    request,
+    current_app,
     flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
     send_from_directory,
+    url_for,
 )
-from werkzeug.utils import secure_filename
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
+from PIL import Image, UnidentifiedImageError
+from sqlalchemy.orm import joinedload
+from werkzeug.security import check_password_hash, generate_password_hash
 
-import utilites
-from app import app, db
-from models import Article, Category, Users, Images
-from config import Config
+from extensions import db
+from models import Article, Category, Images, Users
+from recaptcha import verify_recaptcha
 
-# @app.errorhandler(404)
-# def page_not_fount(e):
-# 	redirect_url = Redirect.query.filter_by(url=request.path).first()
-# 	if redirect_url != None:
-# 		return redirect(request.url_root[:-1] + redirect_url.redirect_url)
-# 	add_to_log404(request.path, request.referrer)
-# 	return render_template('404.html'), 404
+bp = Blueprint("main", __name__)
+_DUMMY_PASSWORD_HASH = generate_password_hash("unused-password")
 
 
-# ================================================ Home page
-@app.route("/")
+def render_page(template, **context):
+    # Error pages must also render if the database is unavailable.
+    context["CATEGORYES"] = db.session.scalars(db.select(Category).order_by(Category.name)).all()
+    return render_template(template, **context)
+
+
+@bp.get("/")
 def index():
-    # categoryes = Category.query.filter_by(id=1).all()
-
-    # categoryes = db.scalars(db.select(Category))
-    # categoryes = Article.query.all()
-    categoryes = Category.query.all()
-    print(categoryes)
-    return render_template("index.html", CATEGORYES=categoryes)
+    return render_page("index.html")
 
 
-# ================================================ Posts
-@app.route("/<cat_name>/<alias>/")
-@app.route("/<cat_name>/<alias>")
-@app.route("/<cat_name>/")
-@app.route("/<cat_name>")
-def posts(cat_name="", alias=""):
-    categoryes = Category.query.all()
-    category = Category.query.filter_by(alias=cat_name).first()
-    if category is None:
-        print(
-            "##### Категорiя '{category}' не знайдена #####".format(category=category)
+@bp.get("/<cat_name>/", defaults={"alias": ""})
+@bp.get("/<cat_name>", defaults={"alias": ""})
+@bp.get("/<cat_name>/<alias>/")
+@bp.get("/<cat_name>/<alias>")
+def posts(cat_name, alias):
+    category = db.first_or_404(db.select(Category).where(Category.alias == cat_name))
+    if not alias:
+        pages = db.paginate(
+            db.select(Article)
+            .where(Article.cat_id == category.id)
+            .options(joinedload(Article.category))
+            .order_by(Article.id.desc()),
+            per_page=current_app.config["ARTICLES_PER_PAGE"],
+            max_per_page=100,
         )
-        return redirect(abort(404))
-
-    if alias == "":
-        articles = Article.query.filter_by(cat_id=category.id)
-        return render_template(
-            "/articles.html",
-            ARTICLES=articles,
-            CATEGORY=category,
-            CATEGORYES=categoryes,
-        )
-
-    article = Article.query.filter_by(alias=alias).first()
-    if article is None:
-        print("##### Публiкацiя '{alias}' не знайдена #####".format(alias=alias))
-        return redirect(abort(404))
-
-    return render_template("/article.html", ARTICLE=article, CATEGORYES=categoryes)
+        return render_page("articles.html", ARTICLES=pages.items, CATEGORY=category, PAGES=pages)
+    article = db.first_or_404(
+        db.select(Article)
+        .where(Article.cat_id == category.id, Article.alias == alias)
+        .options(joinedload(Article.category))
+    )
+    article.add_hit()
+    return render_page("article.html", ARTICLE=article)
 
 
-# ================================================ User Login
-@app.route("/login", methods=["GET", "POST"])
-# @check_recaptcha
+@bp.route("/login", methods=["GET", "POST"])
 def login():
-    categoryes = Category.query.all()
+    if current_user.is_authenticated:
+        return redirect(url_for("admin.index"))
     if request.method == "POST":
-        # Get Form Fields
-        username = request.form["username"]
-        password_candidate = request.form["password"]
-
-        # Get user by username
-        user = Users.query.filter_by(username=username).first()
-
-        if user is not None:
-            # Compare Passwords
-            if password_candidate == user.password:
-                flash("You are now logged in", "success")
-                login_user(user)
-                return redirect("/admin")
-
-            else:
-                error = "Невiрний пароль чи логiн"
-                return render_template("login.html", error=error)
-        else:
-            error = "Користувач не знайдений"
-            return render_template(
-                "login.html", error=error, CATEGORYES=categoryes, CONFIG=Config
-            )
-
-    return render_template("login.html", CATEGORYES=categoryes, CONFIG=Config)
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        if not verify_recaptcha(request.form.get("g-recaptcha-response", "")):
+            flash("Перевірка reCAPTCHA не пройдена. Спробуйте ще раз.", "danger")
+            return render_page("login.html"), 400
+        user = db.session.scalar(db.select(Users).where(Users.username == username))
+        if user is None:
+            check_password_hash(_DUMMY_PASSWORD_HASH, password)
+        elif user.check_password(password):
+            login_user(user)
+            flash("Ви увійшли в систему.", "success")
+            return redirect(url_for("admin.index"))
+        flash("Невірний логін або пароль", "danger")
+    return render_page("login.html")
 
 
-# ============================================================ User Logout
-@app.route("/logout")
+@bp.post("/logout")
+@login_required
 def logout():
     logout_user()
-    flash("You are now logged out", "success")
-    return redirect(url_for("index"))
+    flash("Ви вийшли із системи.", "success")
+    return redirect(url_for("main.index"))
 
 
-# ============================================================ Search
-@app.route("/search", methods=["GET", "POST"])
-@app.route("/search/", methods=["GET", "POST"])
+@bp.get("/logout")
+def logout_get():
+    # Reserve the path so the category catch-all cannot handle this GET.
+    abort(405)
+
+
+@bp.get("/search/")
+@bp.get("/search")
 def search():
-    return render_template("/search.html")
+    return render_page("search.html")
 
 
-# ============================================================ Favicon
-@app.route("/favicon.ico")
+@bp.get("/favicon.ico")
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, "static/img"), "favicon.ico")
+    return send_from_directory(Path(current_app.static_folder) / "img", "favicon.ico")
 
 
-# ============================================================ Files
-@app.route("/admin/check-file/<id>", methods=["GET", "POST"])
-def check_file(id=""):
-    return render_template("file-browse.html", files=Images.query.all(), ARTICLE_ID=id)
+@bp.get("/media/<path:filename>")
+def media(filename):
+    return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
 
 
-@app.route("/admin/upload-file/<id>", methods=["GET", "POST"])
-def upload_file(id=""):
-    JSON = {}
-    if request.method == "POST":
-        files = request.files.getlist("upload")
+@bp.get("/admin/check-file/<int:id>")
+@login_required
+def check_file(id):
+    db.get_or_404(Article, id)
+    files = db.session.scalars(db.select(Images).order_by(Images.id.desc())).all()
+    return render_template("file-browse.html", files=files, ARTICLE_ID=id)
 
-        if files:
 
-            # load_photo(files, path_image, 768, path_thumbnail, 150)
-            filename = secure_filename(utilites.transliterate(files[0].filename, "."))
-            input_image_folder = (
-                Config.full_images_folder + "/articles/" + str(id) + "/"
+@bp.post("/admin/upload-file/<int:id>")
+@login_required
+def upload_file(id):
+    db.get_or_404(Article, id)
+    file = request.files.get("upload")
+    # The display name may be Ukrainian; the actual disk path uses only a UUID.
+    filename = (file.filename or "").replace("\\", "/").rsplit("/", 1)[-1] if file else ""
+    extension = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if not filename or extension not in current_app.config["ALLOWED_EXTENSIONS"]:
+        return jsonify(uploaded=0, error={"message": "Choose a PNG, JPEG, GIF or WebP image."}), 400
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(file.stream) as image:
+                expected = {
+                    "png": "PNG",
+                    "jpg": "JPEG",
+                    "jpeg": "JPEG",
+                    "gif": "GIF",
+                    "webp": "WEBP",
+                }
+                if image.format != expected[extension]:
+                    raise ValueError("Image content does not match its extension")
+                image.verify()
+    except (
+        UnidentifiedImageError,
+        OSError,
+        ValueError,
+        Image.DecompressionBombError,
+        Image.DecompressionBombWarning,
+    ):
+        return jsonify(uploaded=0, error={"message": "Invalid image."}), 400
+
+    file.stream.seek(0)
+    relative = f"articles/{id}/{uuid4().hex}.{extension}"
+    destination = Path(current_app.config["UPLOAD_FOLDER"]) / relative
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        file.save(destination)
+        db.session.add(
+            Images(
+                name=filename[:64],
+                path=relative,
+                type=extension,
+                create_date=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                article_id=id,
             )
-
-            if os.path.exists(input_image_folder):
-                files[0].save(input_image_folder + filename)
-            else:
-                os.mkdir(input_image_folder)
-                files[0].save(input_image_folder + filename)
-
-            path = "/articles/" + str(id) + "/" + filename
-
-            JSON["fileName"] = filename
-            JSON["uploaded"] = 1
-            JSON["url"] = Config.images_folder + path
-
-            image = Images(filename, path, "", utilites.timeNow("u"), id)
-            db.session.add(image)
-            db.session.commit()
-
-    JSON = json.dumps(JSON, ensure_ascii=True, indent=None, sort_keys=False)
-    return JSON, {"Content-Type": "text/json"}
+        )
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        destination.unlink(missing_ok=True)
+        raise
+    return jsonify(fileName=filename, uploaded=1, url=url_for("main.media", filename=relative))
