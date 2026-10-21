@@ -1,4 +1,4 @@
-<div id="article-media" data-article-id="{{ model.id if model is defined and model else '' }}" data-csrf="{{ csrf_token() }}"{% if model is defined and model %} data-browse-url="{{ url_for('main.check_file', id=model.id) }}" data-upload-url="{{ url_for('main.upload_file', id=model.id) }}"{% endif %}>
+<div id="post-media" data-post-id="{{ model.id if model is defined and model else '' }}" data-csrf="{{ csrf_token() }}"{% if model is defined and model %} data-browse-url="{{ url_for('main.check_file', id=model.id) }}" data-upload-url="{{ url_for('main.upload_file', id=model.id) }}"{% endif %}>
   <p class="text-muted">Текст статті підтримує HTML. Для завантаження зображень спочатку збережіть статтю.</p>
   <p id="media-status" role="status"></p>
 </div>

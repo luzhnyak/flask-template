@@ -3,6 +3,8 @@ from flask import current_app, request
 
 
 def verify_recaptcha(token):
+    if current_app.debug:
+        return True
     secret = current_app.config["GOOGLE_RECAPTCHA_SECRET_KEY"]
     if not secret:
         return True

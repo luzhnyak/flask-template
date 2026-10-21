@@ -14,7 +14,7 @@ def create_app(test_config=None):
         app.config.update(test_config)
     if not app.config.get("SECRET_KEY"):
         raise RuntimeError("Set SECRET_KEY in .env before starting the application.")
-    if bool(app.config.get("GOOGLE_RECAPTCHA_SITE_KEY")) != bool(
+    if not app.debug and bool(app.config.get("GOOGLE_RECAPTCHA_SITE_KEY")) != bool(
         app.config.get("GOOGLE_RECAPTCHA_SECRET_KEY")
     ):
         raise RuntimeError("Configure both reCAPTCHA keys, or leave both empty.")
@@ -28,13 +28,13 @@ def create_app(test_config=None):
     from admin import init_admin
     from cli import register_commands
     from context import inject_constants
-    from models import Users
+    from models import User
     from views import bp
 
     @login_manager.user_loader
     def load_user(user_id):
         try:
-            return db.session.get(Users, int(user_id))
+            return db.session.get(User, int(user_id))
         except (TypeError, ValueError):
             return None
 

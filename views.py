@@ -16,12 +16,13 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required, login_user, logout_user
-from PIL import Image, UnidentifiedImageError
+from PIL import Image as PILImage
+from PIL import UnidentifiedImageError
 from sqlalchemy.orm import joinedload
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from extensions import db
-from models import Article, Category, Images, Users
+from models import Category, Image, Post, User
 from recaptcha import verify_recaptcha
 
 bp = Blueprint("main", __name__)
@@ -47,21 +48,21 @@ def posts(cat_name, alias):
     category = db.first_or_404(db.select(Category).where(Category.alias == cat_name))
     if not alias:
         pages = db.paginate(
-            db.select(Article)
-            .where(Article.cat_id == category.id)
-            .options(joinedload(Article.category))
-            .order_by(Article.id.desc()),
-            per_page=current_app.config["ARTICLES_PER_PAGE"],
+            db.select(Post)
+            .where(Post.category_id == category.id)
+            .options(joinedload(Post.category))
+            .order_by(Post.id.desc()),
+            per_page=current_app.config["POSTS_PER_PAGE"],
             max_per_page=100,
         )
-        return render_page("articles.html", ARTICLES=pages.items, CATEGORY=category, PAGES=pages)
-    article = db.first_or_404(
-        db.select(Article)
-        .where(Article.cat_id == category.id, Article.alias == alias)
-        .options(joinedload(Article.category))
+        return render_page("posts.html", POSTS=pages.items, CATEGORY=category, PAGES=pages)
+    post = db.first_or_404(
+        db.select(Post)
+        .where(Post.category_id == category.id, Post.alias == alias)
+        .options(joinedload(Post.category))
     )
-    article.add_hit()
-    return render_page("article.html", ARTICLE=article)
+    post.add_hit()
+    return render_page("post.html", POST=post)
 
 
 @bp.route("/login", methods=["GET", "POST"])
@@ -74,7 +75,7 @@ def login():
         if not verify_recaptcha(request.form.get("g-recaptcha-response", "")):
             flash("Перевірка reCAPTCHA не пройдена. Спробуйте ще раз.", "danger")
             return render_page("login.html"), 400
-        user = db.session.scalar(db.select(Users).where(Users.username == username))
+        user = db.session.scalar(db.select(User).where(User.username == username))
         if user is None:
             check_password_hash(_DUMMY_PASSWORD_HASH, password)
         elif user.check_password(password):
@@ -118,15 +119,15 @@ def media(filename):
 @bp.get("/admin/check-file/<int:id>")
 @login_required
 def check_file(id):
-    db.get_or_404(Article, id)
-    files = db.session.scalars(db.select(Images).order_by(Images.id.desc())).all()
-    return render_template("file-browse.html", files=files, ARTICLE_ID=id)
+    db.get_or_404(Post, id)
+    files = db.session.scalars(db.select(Image).order_by(Image.id.desc())).all()
+    return render_template("file-browse.html", files=files, POST_ID=id)
 
 
 @bp.post("/admin/upload-file/<int:id>")
 @login_required
 def upload_file(id):
-    db.get_or_404(Article, id)
+    db.get_or_404(Post, id)
     file = request.files.get("upload")
     # The display name may be Ukrainian; the actual disk path uses only a UUID.
     filename = (file.filename or "").replace("\\", "/").rsplit("/", 1)[-1] if file else ""
@@ -135,8 +136,8 @@ def upload_file(id):
         return jsonify(uploaded=0, error={"message": "Choose a PNG, JPEG, GIF or WebP image."}), 400
     try:
         with warnings.catch_warnings():
-            warnings.simplefilter("error", Image.DecompressionBombWarning)
-            with Image.open(file.stream) as image:
+            warnings.simplefilter("error", PILImage.DecompressionBombWarning)
+            with PILImage.open(file.stream) as image:
                 expected = {
                     "png": "PNG",
                     "jpg": "JPEG",
@@ -151,24 +152,24 @@ def upload_file(id):
         UnidentifiedImageError,
         OSError,
         ValueError,
-        Image.DecompressionBombError,
-        Image.DecompressionBombWarning,
+        PILImage.DecompressionBombError,
+        PILImage.DecompressionBombWarning,
     ):
         return jsonify(uploaded=0, error={"message": "Invalid image."}), 400
 
     file.stream.seek(0)
-    relative = f"articles/{id}/{uuid4().hex}.{extension}"
+    relative = f"posts/{id}/{uuid4().hex}.{extension}"
     destination = Path(current_app.config["UPLOAD_FOLDER"]) / relative
     destination.parent.mkdir(parents=True, exist_ok=True)
     try:
         file.save(destination)
         db.session.add(
-            Images(
+            Image(
                 name=filename[:64],
                 path=relative,
                 type=extension,
                 create_date=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
-                article_id=id,
+                post_id=id,
             )
         )
         db.session.commit()

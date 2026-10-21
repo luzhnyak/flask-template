@@ -15,7 +15,7 @@
   <h1>Виберіть зображення</h1>
   <div class="files">
   {% for item in files %}
-    {% set image_url = url_for('static', filename='img' ~ item.path) if item.path and item.path.startswith('/') else url_for('main.media', filename=item.path or '') %}
+    {% set image_url = url_for('main.media', filename=(item.path or '').lstrip('/')) %}
     <button type="button" class="item" data-url="{{ image_url }}"><img src="{{ image_url }}" alt="{{ item.name }}" loading="lazy"><br>{{ item.name }}</button>
   {% else %}<p>Поки немає зображень.</p>{% endfor %}
   </div>

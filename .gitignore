@@ -164,3 +164,7 @@ db/*.db
 db/*.db-*
 static/img/articles/
 .ruff_cache/
+
+# Content images are local runtime data.
+media/*
+!media/.gitkeep

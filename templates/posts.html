@@ -13,7 +13,7 @@
 {% block body %}
 
 <div class="container">
-	<div class="articles">
+	<div class="posts">
 		<h1>{{ CATEGORY.name }}</h1>
 		<nav aria-label="breadcrumb">
 			<ol class="breadcrumb">
@@ -22,10 +22,10 @@
 			</ol>
 		</nav>
 		<ul>
-		{% for ARTICLE in ARTICLES %}
+		{% for POST in POSTS %}
 			<li>
-				<a href="{{ url_for('main.posts', cat_name=ARTICLE.category.alias, alias=ARTICLE.alias) }}" >
-						<span><p class="">{{ ARTICLE.title }}</p></span>
+				<a href="{{ url_for('main.posts', cat_name=POST.category.alias, alias=POST.alias) }}" >
+						<span><p class="">{{ POST.title }}</p></span>
 				</a>
 			</li>
 		{% endfor %}
