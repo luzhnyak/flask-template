@@ -1,8 +1,8 @@
 "use strict";
 
 (() => {
-  const media = document.getElementById("article-media");
-  if (!media?.dataset.articleId) return;
+  const media = document.getElementById("post-media");
+  if (!media?.dataset.postId) return;
   const status = document.getElementById("media-status");
   let picker;
 

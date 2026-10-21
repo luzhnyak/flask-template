@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}<title>{{ POST.title }} — Flask start</title>{% endblock %}
+{% block metatags %}<meta name="description" content="{{ POST.desc[:200] }}">{% endblock %}
+{% block body %}
+<article class="post-content container py-4">
+  <h1>{{ POST.title }}</h1>
+  <nav aria-label="Хлібні крихти">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Головна</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('main.posts', cat_name=POST.category.alias) }}">{{ POST.category.name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ POST.title }}</li>
+    </ol>
+  </nav>
+  {{ (POST.textbody or "")|safe }}
+</article>
+{% endblock %}

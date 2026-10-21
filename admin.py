@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 from wtforms.validators import DataRequired, ValidationError
 
 from extensions import db
-from models import Article, Category, Images
+from models import Category, Image, Post
 from utils import transliterate
 
 
@@ -31,17 +31,17 @@ class MyModelView(AdminAccess, ModelView):
 class MyAdminIndexView(AdminAccess, AdminIndexView):
     @expose("/")
     def index(self):
-        articles = db.select(Article).options(joinedload(Article.category))
+        posts = db.select(Post).options(joinedload(Post.category))
         popular = db.session.scalars(
-            articles.order_by(Article.hits.desc(), Article.id.desc()).limit(10)
+            posts.order_by(Post.hits.desc(), Post.id.desc()).limit(10)
         ).all()
-        recent = db.session.scalars(articles.order_by(Article.id.desc()).limit(10)).all()
+        recent = db.session.scalars(posts.order_by(Post.id.desc()).limit(10)).all()
         return self.render("admin/index.html", popular=popular, recent=recent)
 
 
-class ArticlesView(MyModelView):
-    edit_template = "admin/edit_article.html"
-    create_template = "admin/create_article.html"
+class PostsView(MyModelView):
+    edit_template = "admin/edit_post.html"
+    create_template = "admin/create_post.html"
     column_exclude_list = ("textbody",)
     column_searchable_list = ("title",)
     column_default_sort = ("id", True)
@@ -58,14 +58,14 @@ class ArticlesView(MyModelView):
             raise ValidationError("Enter a valid alias or title.")
         with db.session.no_autoflush:
             duplicate = db.session.scalar(
-                db.select(Article.id).where(
-                    Article.alias == model.alias,
-                    Article.cat_id == model.category.id,
-                    Article.id != model.id if model.id is not None else True,
+                db.select(Post.id).where(
+                    Post.alias == model.alias,
+                    Post.category_id == model.category.id,
+                    Post.id != model.id if model.id is not None else True,
                 )
             )
         if duplicate is not None:
-            raise ValidationError("This category already contains an article with that alias.")
+            raise ValidationError("This category already contains an post with that alias.")
 
 
 class CategoriesView(MyModelView):
@@ -95,13 +95,13 @@ class CategoriesView(MyModelView):
 
     def on_model_delete(self, model):
         if (
-            db.session.scalar(db.select(Article.id).where(Article.cat_id == model.id).limit(1))
+            db.session.scalar(db.select(Post.id).where(Post.category_id == model.id).limit(1))
             is not None
         ):
-            raise ValidationError("Move or delete this category's articles first.")
+            raise ValidationError("Move or delete this category's posts first.")
 
 
-class ImagesView(MyModelView):
+class ImageView(MyModelView):
     # File paths are created only by the validated upload endpoint.
     can_create = False
     can_edit = False
@@ -115,6 +115,6 @@ def init_admin(app):
         index_view=MyAdminIndexView(),
         theme=Bootstrap4Theme(swatch="cerulean"),
     )
-    admin.add_view(ArticlesView(Article, db))
+    admin.add_view(PostsView(Post, db))
     admin.add_view(CategoriesView(Category, db))
-    admin.add_view(ImagesView(Images, db))
+    admin.add_view(ImageView(Image, db))

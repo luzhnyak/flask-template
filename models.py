@@ -7,9 +7,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from extensions import db
 
 
-class Article(db.Model):
+class Post(db.Model):
+    __tablename__ = "posts"
+
     id = db.Column(db.Integer, primary_key=True)
-    cat_id = db.Column(db.Integer, db.ForeignKey("category.id"))
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"))
     title = db.Column(db.String())
     alias = db.Column(db.String())
     textbody = db.Column(db.Text())
@@ -24,17 +26,19 @@ class Article(db.Model):
     def add_hit(self):
         # Increment atomically so concurrent requests do not lose views.
         db.session.execute(
-            db.update(Article)
-            .where(Article.id == self.id)
-            .values(hits=db.func.coalesce(Article.hits, 0) + 1)
+            db.update(Post)
+            .where(Post.id == self.id)
+            .values(hits=db.func.coalesce(Post.hits, 0) + 1)
         )
         db.session.commit()
 
     def __repr__(self):
-        return self.title or "Article"
+        return self.title or "Post"
 
 
 class Category(db.Model):
+    __tablename__ = "categories"
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
     alias = db.Column(db.String())
@@ -45,7 +49,7 @@ class Category(db.Model):
         return self.name or "Category"
 
 
-class Images(db.Model):
+class Image(db.Model):
     __tablename__ = "images"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -53,10 +57,12 @@ class Images(db.Model):
     path = db.Column(db.Unicode(128))
     type = db.Column(db.Unicode(4))
     create_date = db.Column(db.String())
-    article_id = db.Column(db.Integer)
+    post_id = db.Column(db.Integer)
 
 
-class Users(UserMixin, db.Model):
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+
     # Every account in this starter is an admin; there is no public registration.
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())

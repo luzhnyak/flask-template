@@ -1,13 +1,13 @@
 {% extends 'admin/master.html' %}
 {% block body %}
   <h1>Адміністративна панель</h1>
-  {% for title, articles in [('Найпопулярніші статті', popular), ('Останні статті', recent)] %}
+  {% for title, posts in [('Найпопулярніші статті', popular), ('Останні статті', recent)] %}
     <h2>{{ title }}</h2>
     <ul>
-      {% for article in articles %}
+      {% for post in posts %}
         <li>
-          {% if article.category %}<a href="{{ url_for('main.posts', cat_name=article.category.alias, alias=article.alias) }}">{{ article.title }}</a>{% else %}{{ article.title }}{% endif %}
-          <a href="{{ url_for('article.edit_view', id=article.id) }}">Редагувати</a>
+          {% if post.category %}<a href="{{ url_for('main.posts', cat_name=post.category.alias, alias=post.alias) }}">{{ post.title }}</a>{% else %}{{ post.title }}{% endif %}
+          <a href="{{ url_for('post.edit_view', id=post.id) }}">Редагувати</a>
         </li>
       {% else %}<li>Поки немає статей.</li>{% endfor %}
     </ul>
